@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 use Nyholm\Psr7Server\ServerRequestCreator;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Request;
@@ -7,8 +8,9 @@ use Nyholm\Psr7\ServerRequest;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use LeanPHP\Container;
 
-// assert($container instanceof Container);
+assert(isset($container) && $container instanceof Container);
 
 $container->setFactory(ServerRequestInterface::class, static function (): ServerRequest {
     $psr17Factory = new Psr17Factory();

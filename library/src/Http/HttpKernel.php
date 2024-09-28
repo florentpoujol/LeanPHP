@@ -4,19 +4,25 @@ declare(strict_types=1);
 
 namespace LeanPHP\Http;
 
+use LeanPHP\Container;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
 final class HttpKernel
 {
+    public function __construct(
+        private readonly Container $container,
+    ) {
+    }
+
     /**
      * @param array<Route> $routes
      */
     public function handle(array $routes, ServerRequestInterface $serverRequest): ResponseInterface
     {
         try {
-            /** @var Router $router */
             $router = new Router($routes);
             $route = $router->resolveRoute($serverRequest->getMethod(), $serverRequest->getUri()->getPath());
 
@@ -24,7 +30,7 @@ final class HttpKernel
                 return new Response(404, body: $serverRequest->getUri()->getPath() . ' not found');
             }
 
-            // $this->container->setInstance(Route::class, $route);
+            $this->container->setInstance(Route::class, $route);
 
             // TODO handle redirects
             if ($route->isRedirect()) {
@@ -43,11 +49,10 @@ final class HttpKernel
 
             $response = $this->callRouteAction($route);
         } catch (\Throwable $exception) {
-
             // $exceptionHandler = $this->container->get(ExceptionHandler::class);
-
+            //
             // $exceptionHandler->report($exception);
-
+            //
             // $response = $exceptionHandler->render($exception);
             $response = new Response(500, body: $exception->getMessage() . ' ' . $exception->getFile() . ' ' . $exception->getLine());
         }
@@ -57,15 +62,11 @@ final class HttpKernel
 
     public function handleRequestThroughPsr15Middleware(): ResponseInterface
     {
-        /* @var PsrRequestHandlerInterface $handler */
-        // $handler = $this->container->get(PsrRequestHandlerInterface::class);
+        $handler = $this->container->get(RequestHandlerInterface::class);
 
-        /* @var ServerRequestInterface $serverRequest */
-        // $serverRequest = $this->container->get(ServerRequestInterface::class);
+        $serverRequest = $this->container->get(ServerRequestInterface::class);
 
-        // return $handler->handle($serverRequest); // see in the handle method for explanation as to why this single line does everything and return the final response, whatever happens in between
-
-        return new Response();
+        return $handler->handle($serverRequest); // see in the handle method for explanation as to why this single line does everything and return the final response, whatever happens in between
     }
 
     public function callRouteAction(Route $route): ResponseInterface
@@ -75,9 +76,9 @@ final class HttpKernel
 
         if (! \is_callable($action)) {
             // "Controller@method"
+            /** @var class-string<object> $fqcn */
             [$fqcn, $method] = explode('@', $action, 2);
-            // $action = [$this->container->get($fqcn), $method];
-            $action = [new $fqcn, $method];
+            $action = [$this->container->get($fqcn), $method];
             \assert(\is_callable($action));
         }
 
