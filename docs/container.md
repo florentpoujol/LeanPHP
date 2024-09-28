@@ -48,11 +48,11 @@ You can autowire the Container or get it via the Framework's `getContainer()` me
 ```php
 // In a service
 __construct(
-    private \LeanPHP\Container::class $container,
+    private LeanPHP\Container::class $container,
 )
 
 // or anywhere else
-$container = \LeanPHP\Container::self();
+$container = LeanPHP\Container::self();
 ```
 
 Then you can use its two methods :

@@ -11,3 +11,8 @@ parameters:
     tmpDir: var/phpstan
     ignoreErrors:
         - '#Method .+ has parameter \$container with generic class LeanPHP\\Container but does not specify its types: ServiceType#' # needed until we figure out the genericity in the Container
+        -
+            message: '#Cannot cast array\|bool\|float\|int\|object\|string\|null to #'
+            paths:
+                - library/src/Container.php
+                - library/src/ConfigRepository.php

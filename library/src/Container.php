@@ -32,11 +32,6 @@ final class Container
      */
     private array $instances = [];
 
-    /**
-     * @var array<string, null|bool|int|float|string>
-     */
-    private array $parameters = [];
-
     public function __construct()
     {
         $this->instances[self::class] = $this; // @phpstan-ignore-line
@@ -48,16 +43,6 @@ final class Container
     public static function self(): self // @phpstan-ignore-line (basically same as above)
     {
         return self::$self;
-    }
-
-    public function setParameter(string $name, null|bool|int|float|string $value): void
-    {
-        $this->parameters[$name] = $value;
-    }
-
-    public function getParameter(string $name): null|bool|int|float|string
-    {
-        return $this->parameters[$name] ?? null;
     }
 
     /**
@@ -289,5 +274,217 @@ final class Container
         }
 
         return new $classFqcn(...$args);
+    }
+
+    // --------------------------------------------------
+    // Parameters
+
+    /**
+     * @var array<string, null|bool|int|float|string|array<mixed>|object>
+     */
+    private array $parameters = [];
+
+    /**
+     * @param bool|int|float|string|array<mixed>|object|null $value
+     */
+    public function setParameter(string $name, null|bool|int|float|string|array|object $value): void
+    {
+        $this->parameters[$name] = $value;
+    }
+
+    /**
+     * @return bool|int|float|string|array<mixed>|object|null
+     */
+    public function getParameter(string $name): null|bool|int|float|string|array|object
+    {
+        return $this->parameters[$name] ?? null;
+    }
+
+    public function hasParameter(string $name): bool
+    {
+        return isset($this->parameters[$name]);
+    }
+
+    public function getStringParameterOrThrow(string $name): string
+    {
+        if (!$this->hasParameter($name)) {
+            throw new \UnexpectedValueException("Parameter '$name' is not set.");
+        }
+
+        return (string) $this->parameters[$name];
+    }
+
+    public function getStringParameterOrNull(string $name): ?string
+    {
+        if (!$this->hasParameter($name)) {
+            return null;
+        }
+
+        return (string) $this->parameters[$name];
+    }
+
+    public function getStringParameterOrDefault(string $name, string $default): string
+    {
+        if (!$this->hasParameter($name)) {
+            return $default;
+        }
+
+        return (string) $this->parameters[$name];
+    }
+
+    // --------------------------------------------------
+
+    public function getIntParameterOrThrow(string $name): int
+    {
+        if (!$this->hasParameter($name)) {
+            throw new \UnexpectedValueException("Parameter '$name' is not set.");
+        }
+
+        return (int) $this->parameters[$name];
+    }
+
+    public function getIntParameterOrNull(string $name): ?int
+    {
+        if (!$this->hasParameter($name)) {
+            return null;
+        }
+
+        return (int) $this->parameters[$name];
+    }
+
+    public function getIntParameterOrDefault(string $name, int $default): int
+    {
+        if (!$this->hasParameter($name)) {
+            return $default;
+        }
+
+        return (int) $this->parameters[$name];
+    }
+
+    // --------------------------------------------------
+
+    public function getFloatParameterOrThrow(string $name): float
+    {
+        if (!$this->hasParameter($name)) {
+            throw new \UnexpectedValueException("Parameter '$name' is not set.");
+        }
+
+        return (float) $this->parameters[$name];
+    }
+
+    public function getFloatParameterOrNull(string $name): ?float
+    {
+        if (!$this->hasParameter($name)) {
+            return null;
+        }
+
+        return (float) $this->parameters[$name];
+    }
+
+    public function getFloatParameterOrDefault(string $name, float $default): float
+    {
+        if (!$this->hasParameter($name)) {
+            return $default;
+        }
+
+        return (float) $this->parameters[$name];
+    }
+
+    // --------------------------------------------------
+
+    public function getBoolParameterOrThrow(string $name): bool
+    {
+        if (!$this->hasParameter($name)) {
+            throw new \UnexpectedValueException("Parameter '$name' is not set.");
+        }
+
+        return (bool) $this->parameters[$name];
+    }
+
+    public function getBoolParameterOrNull(string $name): ?bool
+    {
+        if (!$this->hasParameter($name)) {
+            return null;
+        }
+
+        return (bool) $this->parameters[$name];
+    }
+
+    public function getBoolParameterOrDefault(string $name, bool $default): bool
+    {
+        if (!$this->hasParameter($name)) {
+            return $default;
+        }
+
+        return (bool) $this->parameters[$name];
+    }
+
+    // --------------------------------------------------
+
+    /**
+     * @return array<mixed>
+     */
+    public function getArrayParameterOrThrow(string $name): array
+    {
+        if (!$this->hasParameter($name)) {
+            throw new \UnexpectedValueException("Parameter '$name' is not set.");
+        }
+
+        return (array) $this->parameters[$name];
+    }
+
+    /**
+     * @return null|array<mixed>
+     */
+    public function getArrayParameterOrNull(string $name): ?array
+    {
+        if (!$this->hasParameter($name)) {
+            return null;
+        }
+
+        return (array) $this->parameters[$name];
+    }
+
+    /**
+     * @param array<mixed> $default
+     *
+     * @return array<mixed>
+     */
+    public function getArrayParameterOrDefault(string $name, array $default): array
+    {
+        if (!$this->hasParameter($name)) {
+            return $default;
+        }
+
+        return (array) $this->parameters[$name];
+    }
+
+    // --------------------------------------------------
+
+    public function getObjectParameterOrThrow(string $name): object
+    {
+        if (!$this->hasParameter($name)) {
+            throw new \UnexpectedValueException("Parameter '$name' is not set.");
+        }
+
+        return (object) $this->parameters[$name];
+    }
+
+    public function getObjectParameterOrNull(string $name): ?object
+    {
+        if (!$this->hasParameter($name)) {
+            return null;
+        }
+
+        return (object) $this->parameters[$name];
+    }
+
+    public function getObjectParameterOrDefault(string $name, object $default): object
+    {
+        if (!$this->hasParameter($name)) {
+            return $default;
+        }
+
+        return (object) $this->parameters[$name];
     }
 }
