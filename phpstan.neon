@@ -1,0 +1,11 @@
+includes:
+    - vendor/phpstan/phpstan-strict-rules/rules.neon
+
+parameters:
+    level: max
+    paths:
+        - library
+        - bootstrap
+        - src
+        - tests
+    tmpDir: var/phpstan
