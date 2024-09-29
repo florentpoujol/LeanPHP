@@ -5,6 +5,7 @@ declare(strict_types=1);
 use LeanPHP\Container;
 use LeanPHP\Environment;
 use LeanPHP\Http\HttpKernel;
+use LeanPHP\Http\ServerRequest;
 use Psr\Http\Message\ServerRequestInterface;
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -44,7 +45,7 @@ $httpKernel = new HttpKernel($container);
 
 $response = $httpKernel->handle(
     require_once __DIR__ . '/../bootstrap/routes.php',
-    $container->get(ServerRequestInterface::class),
+    $container->get(ServerRequest::class),
 );
 
 $httpKernel->sendResponse($response);

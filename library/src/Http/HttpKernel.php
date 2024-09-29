@@ -20,7 +20,7 @@ final class HttpKernel
     /**
      * @param array<Route> $routes
      */
-    public function handle(array $routes, ServerRequestInterface $serverRequest): ResponseInterface
+    public function handle(array $routes, ServerRequest $serverRequest): ResponseInterface
     {
         try {
             $router = new Router($routes);
