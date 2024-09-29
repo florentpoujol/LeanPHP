@@ -211,13 +211,11 @@ $bus->dispatch($job); // the handler receive both the dataclass and then the job
 For running commands like the migrations, the seeders > or provide that with the SQL domain ?
 
 
---------------------------------------------------
 
-## Documentation 
+----------------------------------
 
-For everything, show example of how to use the custom things, and how to use the alternative.
+## TODO
 
-The framework is basically built by the user, with help from the documentation.
-
-Write document before
-
+- ConfigRepository : add dotted key support
+- Container: autowire parameter that have a different name with an attribute
+- PhpViewRenderer: add layouts, easy escaping 

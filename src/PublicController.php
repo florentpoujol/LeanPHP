@@ -2,12 +2,22 @@
 
 namespace App;
 
+use LeanPHP\PhpViewRenderer;
 use Nyholm\Psr7\Response;
 
 final readonly class PublicController
 {
+    public function __construct(
+        private PhpViewRenderer $viewRenderer,
+    ) {
+    }
+
     public function index(): Response
     {
-        return new Response(200, body: "hello from public controller");
+        $html = $this->viewRenderer->render('home', [
+            'varFromController' => 'la valeur de la var qui vient du controller',
+        ]);
+
+        return new Response(body: $html);
     }
 }

@@ -24,3 +24,6 @@ $container->setFactory(ServerRequestInterface::class, static function (): Server
 
 $container->bind(ResponseInterface::class, Response::class);
 $container->bind(RequestInterface::class, Request::class); // client request
+
+$container->setParameter('baseViewPath', realpath(__DIR__ . '/../resources/views')); // for the ViewRenderer service
+
