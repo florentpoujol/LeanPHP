@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LeanPHP\Http;
 
+use App\Http\ExceptionHandler;
 use LeanPHP\Container;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
@@ -49,12 +50,11 @@ final class HttpKernel
 
             $response = $this->callRouteAction($route);
         } catch (\Throwable $exception) {
-            // $exceptionHandler = $this->container->get(ExceptionHandler::class);
-            //
-            // $exceptionHandler->report($exception);
-            //
-            // $response = $exceptionHandler->render($exception);
-            $response = new Response(500, body: $exception->getMessage() . ' ' . $exception->getFile() . ' ' . $exception->getLine());
+            $exceptionHandler = $this->container->get(ExceptionHandler::class);
+
+            $exceptionHandler->report($exception);
+
+            $response = $exceptionHandler->render($exception);
         }
 
         return $response;

@@ -3,3 +3,4 @@ vendor/
 .phpunit.cache/
 var/*
 .php-cs-fixer.cache
+.env

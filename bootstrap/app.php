@@ -16,7 +16,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 Environment::readFileIfExists(__DIR__ . '/../.env');
 $environmentName = Environment::getStringOrDefault('APP_ENV', 'production');
 
-$envNameRegex = '/^[a-z_-]{4,20}$/';
+$envNameRegex = '/^[a-z_-]{3,20}$/';
 if ((int)preg_match($envNameRegex, $environmentName) === 0) {
     throw new \Exception("The environment name '$environmentName' doesn't respect the regex '$envNameRegex'. Check the value of the APP_ENV variable.");
 }

@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-use App\PublicController;
-use Nyholm\Psr7\Response;
+use App\Http\PublicController;
 use LeanPHP\Http\Route;
+use Nyholm\Psr7\Response;
 
 return [
     new Route(['get'], '/', PublicController::class . '@index'),

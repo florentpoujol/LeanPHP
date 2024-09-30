@@ -8,7 +8,7 @@ final readonly class Environment
 {
     public static function readFileIfExists(
         string $filePath,
-        string $envVarPattern = '/\s*(?<key>[A-Z0-9_-]+)\s*=(?:\s*)(?<value>.+)(?:\s*)\n/iU', // eg: SOME_ENV = "a value"
+        string $envVarPattern = '/\s*(?<key>[A-Z0-9_-]+)\s*=(?<value>.+)\n?$/iU', // eg: SOME_ENV = "a value"
     ): void {
         if (! file_exists($filePath)) {
             return;
@@ -23,8 +23,11 @@ final readonly class Environment
         foreach ($matches['key'] as $i => $key) {
             $value = trim($matches['value'][$i]);
             if (
-                ('"' === $value[0] && '"' === $value[-1])
-                || ("'" === $value[0] && "'" === $value[-1])
+                strlen($value) > 2
+                && (
+                    ('"' === $value[0] && '"' === $value[-1])
+                    || ("'" === $value[0] && "'" === $value[-1])
+                )
             ) {
                 // if the value is surrounded by a quotation mark, remove it, but only that one
                 // so that a value like ""test"" become "test"
