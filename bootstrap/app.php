@@ -6,9 +6,18 @@ use LeanPHP\Container;
 use LeanPHP\Environment;
 use LeanPHP\Http\HttpKernel;
 use LeanPHP\Http\ServerRequest;
-use Psr\Http\Message\ServerRequestInterface;
+use Whoops\Handler\CallbackHandler;
+use Whoops\Handler\PrettyPageHandler;
+use Whoops\Run;
+use Psr\Log\LoggerInterface;
 
 require_once __DIR__ . '/../vendor/autoload.php';
+
+$whoopsErrorHandler = new Run();
+$whoopsErrorHandler->pushHandler(new PrettyPageHandler());
+// see doc for JSON or ajax requests
+$whoopsErrorHandler->register();
+
 
 // --------------------------------------------------
 // Read environment
@@ -34,6 +43,12 @@ $container = new Container();
 $container->setParameter('environmentName', $environmentName);
 
 require_once __DIR__ . '/../bootstrap/factories.php'; // fill the container
+
+$whoopsErrorHandler->pushHandler(new CallbackHandler(function (\Throwable $exception) use ($container): void {
+    $logger = $container->get(LoggerInterface::class);
+    $message = $exception->getMessage() . ' ' . $exception->getFile() . ':' . $exception->getLine();
+    $logger->error($message);
+}));
 
 // --------------------------------------------------
 

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace LeanPHP\Http;
 
-use App\Http\ExceptionHandler;
 use LeanPHP\Container;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Symfony\Component\ErrorHandler\ErrorHandler;
 
 final class HttpKernel
 {
@@ -23,41 +23,31 @@ final class HttpKernel
      */
     public function handle(array $routes, ServerRequest $serverRequest): ResponseInterface
     {
-        try {
-            $router = new Router($routes);
-            $route = $router->resolveRoute($serverRequest->getMethod(), $serverRequest->getUri()->getPath());
+        $router = new Router($routes);
+        $route = $router->resolveRoute($serverRequest->getMethod(), $serverRequest->getUri()->getPath());
 
-            if ($route === null) {
-                return new Response(404, body: $serverRequest->getUri()->getPath() . ' not found');
-            }
-
-            $this->container->setInstance(Route::class, $route);
-
-            // TODO handle redirects
-            if ($route->isRedirect()) {
-                $action = $route->getAction();
-                \assert(\is_string($action));
-
-                $status = str_starts_with($action, 'redirect-permanent:') ? 301 : 302;
-                $location = str_replace(['redirect:', 'redirect-permanent:'], '', $action);
-
-                return new Response($status, ['Location' => $location]);
-            }
-
-            if ($route->hasPsr15Middleware()) {
-                return $this->handleRequestThroughPsr15Middleware();
-            }
-
-            $response = $this->callRouteAction($route);
-        } catch (\Throwable $exception) {
-            $exceptionHandler = $this->container->get(ExceptionHandler::class);
-
-            $exceptionHandler->report($exception);
-
-            $response = $exceptionHandler->render($exception);
+        if ($route === null) {
+            return new Response(404, body: $serverRequest->getUri()->getPath() . ' not found');
         }
 
-        return $response;
+        $this->container->setInstance(Route::class, $route);
+
+        // TODO handle redirects
+        if ($route->isRedirect()) {
+            $action = $route->getAction();
+            \assert(\is_string($action));
+
+            $status = str_starts_with($action, 'redirect-permanent:') ? 301 : 302;
+            $location = str_replace(['redirect:', 'redirect-permanent:'], '', $action);
+
+            return new Response($status, ['Location' => $location]);
+        }
+
+        if ($route->hasPsr15Middleware()) {
+            return $this->handleRequestThroughPsr15Middleware();
+        }
+
+        return $this->callRouteAction($route);
     }
 
     public function handleRequestThroughPsr15Middleware(): ResponseInterface

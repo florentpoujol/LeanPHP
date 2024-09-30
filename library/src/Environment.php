@@ -23,7 +23,7 @@ final readonly class Environment
         foreach ($matches['key'] as $i => $key) {
             $value = trim($matches['value'][$i]);
             if (
-                strlen($value) > 2
+                \strlen($value) > 2
                 && (
                     ('"' === $value[0] && '"' === $value[-1])
                     || ("'" === $value[0] && "'" === $value[-1])
