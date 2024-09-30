@@ -3,12 +3,17 @@ includes:
 
 parameters:
     level: max
+    tmpDir: var/phpstan
+
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: true
+
     paths:
         - library
         - bootstrap
         - src
         - tests
-    tmpDir: var/phpstan
+
     ignoreErrors:
         - '#Method .+ has parameter \$container with generic class LeanPHP\\Container but does not specify its types: ServiceType#' # needed until we figure out the genericity in the Container
         -
