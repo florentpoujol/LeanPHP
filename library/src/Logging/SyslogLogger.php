@@ -57,7 +57,6 @@ final class SyslogLogger extends AbstractLogger
      * @param int|string|Stringable $level
      * @param array<string, mixed> $context
      */
-    // @phpstan-ignore-next-line (complain about the $level and $context argument not being contravariant because of the added PHPDoc)
     public function log(mixed $level, string|Stringable $message, array $context = []): void
     {
         $facility = \LOG_LOCAL0;

@@ -6,8 +6,10 @@ use Exception;
 use Psr\Log\AbstractLogger;
 use Stringable;
 
-final class ResourceLogger extends AbstractLogger
+final class ResourceLogger extends AbstractLogger implements ConfigurableLogger
 {
+    use ConfigureLogger;
+
     /**
      * @var callable(string $level, string $message, array $context = []): string
      */
@@ -67,9 +69,13 @@ final class ResourceLogger extends AbstractLogger
      * @param string|Stringable $level
      * @param array<string, mixed> $context
      */
-    // @phpstan-ignore-next-line (complain about the $level and $context argument not being contravariant because of the added PHPDoc)
     public function log(mixed $level, string|Stringable $message, array $context = []): void
     {
+        $level = (string) $level;
+        if (! $this->handleLevel($level)) {
+            return;
+        }
+
         if ($this->logFileResource === null) {
             $this->openResource();
         }
@@ -77,7 +83,7 @@ final class ResourceLogger extends AbstractLogger
 
         $formatter = $this->formatter;
         \assert(\is_callable($formatter));
-        $line = $formatter((string) $level, (string) $message, $context);
+        $line = $formatter($level, (string) $message, $context);
 
         fwrite($this->logFileResource, $line . \PHP_EOL);
     }
