@@ -9,8 +9,9 @@ parameters:
     reportUnmatchedIgnoredErrors: true
 
     paths:
-        - library
+        - bin
         - bootstrap
+        - library
         - src
         - tests
 

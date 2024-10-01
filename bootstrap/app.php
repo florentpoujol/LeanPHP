@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 use LeanPHP\Container;
 use LeanPHP\Environment;
-use LeanPHP\Http\HttpKernel;
-use LeanPHP\Http\ServerRequest;
 use Whoops\Handler\CallbackHandler;
+use Whoops\Handler\PlainTextHandler;
 use Whoops\Handler\PrettyPageHandler;
 use Whoops\Run;
 use Psr\Log\LoggerInterface;
@@ -14,7 +13,11 @@ use Psr\Log\LoggerInterface;
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $whoopsErrorHandler = new Run();
-$whoopsErrorHandler->pushHandler(new PrettyPageHandler());
+if (\PHP_SAPI === 'cli') {
+    $whoopsErrorHandler->pushHandler(new PlainTextHandler());
+} else {
+    $whoopsErrorHandler->pushHandler(new PrettyPageHandler());
+}
 // see doc for JSON or ajax requests
 $whoopsErrorHandler->register();
 
@@ -50,17 +53,3 @@ $whoopsErrorHandler->pushHandler(new CallbackHandler(function (\Throwable $excep
     $logger->error($message);
 }));
 
-// --------------------------------------------------
-
-// note Florent 27/09/24: using FastRoute instead of the built-in slow/dumb router, but only if we do not care to insert the matched route object into the container.
-// Customizing FastRoute to allow that is basically not possible.
-// Eventually replace by the Symfony router, or at least do something similar to the Tempest router that also build a single regex (but in a way different from FastRoute).
-
-$httpKernel = new HttpKernel($container);
-
-$response = $httpKernel->handle(
-    require_once __DIR__ . '/../bootstrap/routes.php',
-    $container->get(ServerRequest::class),
-);
-
-$httpKernel->sendResponse($response);

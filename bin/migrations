@@ -1,0 +1,14 @@
+#!/usr/bin/php
+<?php declare(strict_types=1);
+
+use LeanPHP\Container;
+use LeanPHP\Database\RunMigrationsCommand;
+
+require __DIR__ . '/../bootstrap/app.php';
+assert(isset($container) && $container instanceof Container);
+
+$command = $container->get(RunMigrationsCommand::class);
+
+$status = $command->run();
+
+exit($status);

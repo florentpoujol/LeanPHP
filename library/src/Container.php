@@ -106,7 +106,7 @@ final class Container
 
         $concrete = $this->make($id); // @phpstan-ignore-line
         if ($concrete === null) {
-            throw new \Exception("Service '$id' couldn't be resolved");
+            throw new \Exception("Service '$id' couldn't be resolved", 1);
         }
 
         if (isset($this->singletonBindings[$id])) {
@@ -262,11 +262,16 @@ final class Container
             if ($paramIsMandatory) {
                 try {
                     $instance = $this->get($typeName);
-                } catch (\Exception) {
-                    $msg = "Constructor argument '$paramName' for class '$classFqcn' has type '$typeName' " .
-                        " but the container don't know how to resolve it.";
+                } catch (\Exception $exception) {
+                    if ($exception::class === 'Exception' && $exception->getCode() === 1) {
+                        $msg = "Constructor argument '$paramName' for class '$classFqcn' has type '$typeName' " .
+                            " but the container don't know how to resolve it.";
 
-                    throw new \Exception($msg);
+                        throw new \Exception($msg);
+                    }
+
+                    // other exception in the factories, that must be propagated
+                    throw $exception;
                 }
             }
 

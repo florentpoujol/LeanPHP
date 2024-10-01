@@ -7,8 +7,9 @@ use Rector\Php81\Rector\Property\ReadOnlyPropertyRector;
 
 return RectorConfig::configure()
     ->withPaths([
-        __DIR__ . '/library',
+        __DIR__ . '/bin',
         __DIR__ . '/bootstrap',
+        __DIR__ . '/library',
         __DIR__ . '/src',
         __DIR__ . '/tests',
     ])
