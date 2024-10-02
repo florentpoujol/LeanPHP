@@ -74,7 +74,8 @@ final readonly class RunMigrationsCommand
         echo "Found $toExecuteCount migrations to run." . \PHP_EOL;
 
         foreach ($migrationFiles as $file) {
-            $migrationName = substr($file, 0, -4);
+            $migrationIsPhp = str_ends_with($file, '.php');
+            $migrationName = substr($file, 0, -4); // remove the ".php" or ".sql" suffix
 
             if (\in_array($migrationName, $alreadyExecutedMigrationNames, true)) {
                 continue;
@@ -83,10 +84,14 @@ final readonly class RunMigrationsCommand
             echo "Starting migration '$migrationName'..." . \PHP_EOL;
             $startTime = microtime(true);
 
-            /** @var AbstractMigration $migrationInstance */
-            $migrationInstance = require_once $this->migrationFolder . '/' . $file;
-            $migrationInstance->setPdo($this->pdo);
-            $migrationInstance->up();
+            if ($migrationIsPhp) {
+                /** @var AbstractMigration $migrationInstance */
+                $migrationInstance = require_once $this->migrationFolder . '/' . $file;
+                $migrationInstance->setPdo($this->pdo);
+                $migrationInstance->up();
+            } else {
+                $this->pdo->query(file_get_contents($this->migrationFolder . '/' . $file));
+            }
 
             // migration successful, register it
             $statement = $this->pdo->prepare(<<<SQL

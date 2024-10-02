@@ -8,16 +8,17 @@ LeanPHP provide a simple migration system to create or modify your table schemas
 
 ### Defining migrations
 
-Migrations are classes that extends `AbstractMigration`, implements the `up()` and `down()` method and use an instance of PDO accessible on the `pdo` property.
-
 Migrations can be defined by default in your project's `database/migrations` folder.  
 The name of the files is the name of each migration, and should be prefixed by a number, a timestamp or a date so that they are sortable in the order they should run.
 
+Migration files can just be `.sql` files.
+
+Or migrations can be `.php` files with classes that extends `AbstractMigration`, implements the `up()` and `down()` method and use an instance of PDO accessible on the `pdo` property.  
 The file must return an instance of the migration object, which can typically be an anonymous class.
 
 Example: 
 ```php
-// in a file named for instance "20241002113100_create_users_table".
+// in a file named for instance "20241002113100_create_users_table.php".
 
 return new class extends AbstractMigration
 {
