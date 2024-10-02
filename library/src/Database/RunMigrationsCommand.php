@@ -4,18 +4,16 @@ namespace LeanPHP\Database;
 
 final readonly class RunMigrationsCommand
 {
-    private string $migrationFolder;
-
     public function __construct(
         private \PDO $pdo,
         private string $migrationTableName = 'leanphp_migrations',
+        private string $migrationFolder = __DIR__ . '/../../../database/migrations', // FIXME default migration path should depend on a "baseAppPath" or assume the lib is in the vendor folder
+        private string $environmentName = 'prod',
     ) {
         $migrationTableRegex = '/^[a-z0-9_-]{4,20}$/i';
         if (preg_match($migrationTableRegex, $this->migrationTableName) !== 1) {
             throw new \UnexpectedValueException("The migration table name '$this->migrationTableName' doesn't match the regex '$migrationTableRegex'.");
         }
-
-        $this->migrationFolder = __DIR__ . '/../../../database/migrations';
     }
 
     /**
@@ -71,6 +69,10 @@ final readonly class RunMigrationsCommand
         $alreadyExecutedMigrationNames = $this->getAlreadyExecutedMigrationNames();
         $migrationFiles = $this->getMigrationFiles();
 
+        echo "Running migrations in environment '$this->environmentName'..." . \PHP_EOL;
+        $toExecuteCount = \count($migrationFiles) - \count($alreadyExecutedMigrationNames);
+        echo "Found $toExecuteCount migrations to run." . \PHP_EOL;
+
         foreach ($migrationFiles as $file) {
             $migrationName = substr($file, 0, -4);
 
@@ -78,11 +80,13 @@ final readonly class RunMigrationsCommand
                 continue;
             }
 
+            echo "Starting migration '$migrationName'..." . \PHP_EOL;
+            $startTime = microtime(true);
+
             /** @var AbstractMigration $migrationInstance */
             $migrationInstance = require_once $this->migrationFolder . '/' . $file;
             $migrationInstance->setPdo($this->pdo);
             $migrationInstance->up();
-            echo "migration up " . \PHP_EOL;
 
             // migration successful, register it
             $statement = $this->pdo->prepare(<<<SQL
@@ -91,7 +95,11 @@ final readonly class RunMigrationsCommand
             \assert($statement instanceof \PDOStatement);
             $statement->bindParam('migrationName', $migrationName);
             $statement->execute();
-            echo "migration saved " . \PHP_EOL;
+
+            $endTime = microtime(true);
+            $elapsedTimeInMs = number_format(($endTime - $startTime) * 1_000);
+
+            echo "Migration '$migrationName' done in $elapsedTimeInMs ms." . \PHP_EOL;
         }
 
         return 0;

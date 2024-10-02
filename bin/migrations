@@ -4,6 +4,11 @@
 use LeanPHP\Container;
 use LeanPHP\Database\RunMigrationsCommand;
 
+$options = getopt('', ['env:']);
+if (is_array($options) && isset($options['env'])) {
+    define('APP_ENV_OVERRIDE', $options['env']);
+}
+
 require __DIR__ . '/../bootstrap/app.php';
 assert(isset($container) && $container instanceof Container);
 

@@ -24,9 +24,15 @@ $whoopsErrorHandler->register();
 
 // --------------------------------------------------
 // Read environment
-//
+
 Environment::readFileIfExists(__DIR__ . '/../.env');
-$environmentName = Environment::getStringOrDefault('APP_ENV', 'production');
+
+if (defined('APP_ENV_OVERRIDE')) {
+    $environmentName = APP_ENV_OVERRIDE;
+    assert(is_string($environmentName));
+} else {
+    $environmentName = Environment::getStringOrDefault('APP_ENV', 'prod');
+}
 
 $envNameRegex = '/^[a-z_-]{3,20}$/';
 if ((int)preg_match($envNameRegex, $environmentName) === 0) {
