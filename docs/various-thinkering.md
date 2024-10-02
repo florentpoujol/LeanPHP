@@ -218,4 +218,5 @@ For running commands like the migrations, the seeders > or provide that with the
 
 - ConfigRepository : add dotted key support
 - Container: autowire parameter that have a different name with an attribute
-- PhpViewRenderer: add layouts, easy escaping 
+- PhpViewRenderer: add layouts, easy escaping
+- seeder command: allow to have files in env-named folder ?

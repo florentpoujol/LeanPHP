@@ -47,3 +47,27 @@ return new class extends AbstractMigration
 Run the `bin/migrations` CLI command, it will run by default with the database connection configured for the current environment.
 
 To run the migration for a specific environment (useful to migrate the tests database), run it with the `--env=test` option (assuming your test env is named `test`).
+
+The migrations that have already run are saved in a table named by default `leanphp_migrations` so that running the command only run the migration that haven't been applied already.
+
+## Seeding data
+
+## Writing seeders
+
+Similar than migrations, your project's `database/seeds` folder can contain files which aim to fill the database instead of changing its schema.
+
+The name of the files should be prefixed by a number, a timestamp or a date so that they are sortable in the order they should run.
+
+The files can be regular `.sql` files, or `.php` files that return an instance of a class that extends `AbstractSeed`.
+
+## Running seeders
+
+Run the `bin/dbSeed` CLI command, it will run by default with the database connection configured for the current environment.
+
+To run the seeders for a specific environment (useful to target the tests database), run it with the `--env=test` option (assuming your test env is named `test`).
+
+Unlike migrations, we do not keep track of which seeders have run. 
+Typically, this is fine since the main usage of seeder is to fill a database just after it has been freshly migrated.
+
+You can also run a single seeder file by putting its name as argument : 
+`bin/dbSeed 20241002155300_my_seeder`.

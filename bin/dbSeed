@@ -1,0 +1,19 @@
+#!/usr/bin/php
+<?php declare(strict_types=1);
+
+use LeanPHP\Container;
+use LeanPHP\Database\SeedDatabaseCommand;
+
+$options = getopt('', ['env:']);
+if (is_array($options) && isset($options['env'])) {
+    define('APP_ENV_OVERRIDE', $options['env']);
+}
+
+require __DIR__ . '/../bootstrap/app.php';
+assert(isset($container) && $container instanceof Container);
+
+$command = $container->get(SeedDatabaseCommand::class);
+
+$status = $command->run($argv[1] ?? null);
+
+exit($status);
