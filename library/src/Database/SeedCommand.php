@@ -2,7 +2,10 @@
 
 namespace LeanPHP\Database;
 
-final readonly class RunSeedersCommand
+use LeanPHP\Console\InputOutput\AbstractInput;
+use LeanPHP\Console\InputOutput\AbstractOutput;
+
+final readonly class SeedCommand
 {
     public function __construct(
         private \PDO   $pdo,
@@ -23,15 +26,18 @@ final readonly class RunSeedersCommand
         return \array_slice($files, 2); // remove "." and ".."
     }
 
-    public function run(null|string $fileName = null): int
+    public function run(AbstractInput $input, AbstractOutput $output): int
     {
         $seedFiles = $this->getSeedFiles();
 
-        echo "Seeding the database in environment '$this->environmentName'..." . \PHP_EOL;
+        $output->write("Seeding the database in environment '$this->environmentName'...");
 
+        $fileName = $input->getArguments()[0] ?? null;
         if ($fileName === null) {
             $toExecuteCount = \count($seedFiles);
-            echo "Found $toExecuteCount seeders to run." . \PHP_EOL;
+            $output->write("Found $toExecuteCount seeders to run.");
+        } else {
+            $output->write('Seeding only the specified seeder.');
         }
 
         foreach ($seedFiles as $file) {
@@ -41,7 +47,7 @@ final readonly class RunSeedersCommand
                 continue;
             }
 
-            echo "Seeding '$seedName'..." . \PHP_EOL;
+            $output->write("Seeding '$seedName'...");
             $startTime = microtime(true);
 
             if (str_ends_with($file, '.php')) {
@@ -58,7 +64,7 @@ final readonly class RunSeedersCommand
             $endTime = microtime(true);
             $elapsedTimeInMs = number_format(($endTime - $startTime) * 1_000);
 
-            echo "Done in $elapsedTimeInMs ms." . \PHP_EOL;
+            $output->write("Done in $elapsedTimeInMs ms.");
         }
 
         return 0;

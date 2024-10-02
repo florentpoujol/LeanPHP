@@ -1,0 +1,23 @@
+#!/usr/bin/php
+<?php declare(strict_types=1);
+
+use LeanPHP\Console\InputOutput\ArgvInput;
+use LeanPHP\Console\InputOutput\EchoOutput;
+use LeanPHP\Container;
+use LeanPHP\Database\SeedCommand;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$input = new ArgvInput($argv);
+if ($input->hasOption('env')) {
+    define('APP_ENV_OVERRIDE', $input->getOptionOrThrow('env'));
+}
+
+require __DIR__ . '/../bootstrap/app.php';
+assert(isset($container) && $container instanceof Container);
+
+$command = $container->get(SeedCommand::class);
+
+$status = $command->run($input, new EchoOutput());
+
+exit($status);

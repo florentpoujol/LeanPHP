@@ -2,7 +2,10 @@
 
 namespace LeanPHP\Database;
 
-final readonly class RunMigrationsCommand
+use LeanPHP\Console\InputOutput\AbstractInput;
+use LeanPHP\Console\InputOutput\AbstractOutput;
+
+final readonly class MigrateCommand
 {
     public function __construct(
         private \PDO $pdo,
@@ -64,14 +67,67 @@ final readonly class RunMigrationsCommand
         return $data;
     }
 
-    public function run(): int
+    private AbstractOutput $output; // @phpstan-ignore-line (ask to assign it in constructor)
+
+    public function run(AbstractInput $input, AbstractOutput $output): int
+    {
+        $this->output = $output; // @phpstan-ignore-line (ask to assign it in constructor)
+
+        $command = $input->getArguments()[0] ?? null;
+
+        switch ($command) {
+            case 'fresh':
+                $this->migrateFresh();
+                break;
+            case 'up':
+                $this->migrateUp();
+                break;
+            case 'down':
+                // $this->migrateDown();
+                break;
+            default: throw new \UnexpectedValueException("Unknown first argument '$command', should be 'up' or 'down'.");
+        }
+
+        return 0;
+    }
+
+    private function migrateFresh(): void
+    {
+        // delete all tables, or the whole db
+        $tables = [];
+
+        $driver = $this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+        if ($driver === 'sqlite') {
+            $statement = $this->pdo->query("select name from sqlite_master where type = 'table' and name not like 'sqlite_%'");
+            \assert($statement instanceof \PDOStatement);
+            $statement->setFetchMode(\PDO::FETCH_COLUMN, 0);
+            $tables = $statement->fetchAll(0);
+        } elseif ($driver === 'pgsql') {
+            $this->pdo->query('\dt');
+            $tables = [];
+        } elseif ($driver === 'mysql') {
+            $this->pdo->query('show tables;');
+        }
+
+        \assert(\is_array($tables));
+        $count = \count($tables);
+        $this->output->writeError("Dropping $count tables.");
+
+        foreach ($tables as $table) {
+            $this->pdo->exec("drop table `$table`;");
+        }
+
+        $this->migrateUp();
+    }
+
+    private function migrateUp(): void
     {
         $alreadyExecutedMigrationNames = $this->getAlreadyExecutedMigrationNames();
         $migrationFiles = $this->getMigrationFiles();
 
-        echo "Running migrations in environment '$this->environmentName'..." . \PHP_EOL;
+        $this->output->write("Running migrations in environment '$this->environmentName'...");
         $toExecuteCount = \count($migrationFiles) - \count($alreadyExecutedMigrationNames);
-        echo "Found $toExecuteCount migrations to run." . \PHP_EOL;
+        $this->output->write("Found $toExecuteCount migrations to run.");
 
         foreach ($migrationFiles as $file) {
             $migrationName = substr($file, 0, -4); // remove the ".php" or ".sql" suffix
@@ -80,7 +136,7 @@ final readonly class RunMigrationsCommand
                 continue;
             }
 
-            echo "Starting migration '$migrationName'..." . \PHP_EOL;
+            $this->output->write("Starting migration '$migrationName'...");
             $startTime = microtime(true);
 
             if (str_ends_with($file, '.php')) {
@@ -105,9 +161,9 @@ final readonly class RunMigrationsCommand
             $endTime = microtime(true);
             $elapsedTimeInMs = number_format(($endTime - $startTime) * 1_000);
 
-            echo "Migration '$migrationName' done in $elapsedTimeInMs ms." . \PHP_EOL;
+            $this->output->write("Done in $elapsedTimeInMs ms.");
         }
 
-        return 0;
+        $this->output->writeSuccess('Migrations done.');
     }
 }
