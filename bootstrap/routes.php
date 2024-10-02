@@ -8,5 +8,5 @@ return [
     new Route(['get'], '/', PublicController::class . '@index'),
     new Route(['get'], '/posts/{id}', PublicController::class . '@index'),
 
-    new Route(['GET', 'POST', 'PUT', 'HEAD', 'DELETE'], '/{any}', fn($any): \Nyholm\Psr7\Response => new Response(404, body: "this is the fallback route"), ['any' => '.*']),
+    new Route(['GET', 'POST', 'PUT', 'HEAD', 'DELETE'], '/{any}', fn($any): \Nyholm\Psr7\Response => new Response(404, body: 'this is the fallback route'), ['any' => '.*']),
 ];

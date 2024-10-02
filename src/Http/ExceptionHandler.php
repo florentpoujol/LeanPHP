@@ -35,6 +35,6 @@ final readonly class ExceptionHandler
             return new Response(500, body: $html);
         }
 
-        return new Response(500, body: "There has been an error.");
+        return new Response(500, body: 'There has been an error.');
     }
 }
