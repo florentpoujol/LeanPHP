@@ -2,11 +2,11 @@
 
 namespace LeanPHP\Database;
 
-final readonly class SeedDatabaseCommand
+final readonly class RunSeedersCommand
 {
     public function __construct(
         private \PDO   $pdo,
-        private string $seedsFolder = __DIR__ . '/../../../database/seeds', // FIXME default seeds path should depend on a "baseAppPath" or assume the lib is in the vendor folder
+        private string $seedsFolder = __DIR__ . '/../../../database/seeders', // FIXME default seeders path should depend on a "baseAppPath" or assume the lib is in the vendor folder
         private string $environmentName = 'prod',
     ) {
     }
@@ -31,7 +31,7 @@ final readonly class SeedDatabaseCommand
 
         if ($fileName === null) {
             $toExecuteCount = \count($seedFiles);
-            echo "Found $toExecuteCount seeds to run." . \PHP_EOL;
+            echo "Found $toExecuteCount seeders to run." . \PHP_EOL;
         }
 
         foreach ($seedFiles as $file) {
@@ -45,7 +45,7 @@ final readonly class SeedDatabaseCommand
             $startTime = microtime(true);
 
             if (str_ends_with($file, '.php')) {
-                /** @var AbstractSeed $seedInstance */
+                /** @var AbstractSeeder $seedInstance */
                 $seedInstance = require_once $this->seedsFolder . '/' . $file;
                 $seedInstance->setPdo($this->pdo);
                 $seedInstance->run();

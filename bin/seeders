@@ -2,7 +2,7 @@
 <?php declare(strict_types=1);
 
 use LeanPHP\Container;
-use LeanPHP\Database\SeedDatabaseCommand;
+use LeanPHP\Database\RunSeedersCommand;
 
 $options = getopt('', ['env:']);
 if (is_array($options) && isset($options['env'])) {
@@ -12,8 +12,17 @@ if (is_array($options) && isset($options['env'])) {
 require __DIR__ . '/../bootstrap/app.php';
 assert(isset($container) && $container instanceof Container);
 
-$command = $container->get(SeedDatabaseCommand::class);
+$command = $container->get(RunSeedersCommand::class);
 
-$status = $command->run($argv[1] ?? null);
+$firstArg = null;
+array_shift($argv);
+foreach ($argv as $arg) {
+    if (!str_starts_with($arg, '-')) {
+        $firstArg = $arg;
+        break;
+    }
+}
+
+$status = $command->run($firstArg);
 
 exit($status);

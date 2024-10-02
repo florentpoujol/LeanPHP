@@ -2,7 +2,7 @@
 
 namespace LeanPHP\Database;
 
-abstract class AbstractSeed
+abstract class AbstractSeeder
 {
     protected \PDO $pdo;
 

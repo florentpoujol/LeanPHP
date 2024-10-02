@@ -1,8 +1,8 @@
 <?php
 
-use LeanPHP\Database\AbstractSeed;
+use LeanPHP\Database\AbstractSeeder;
 
-return new class extends AbstractSeed
+return new class extends AbstractSeeder
 {
     public function run(): void
     {
