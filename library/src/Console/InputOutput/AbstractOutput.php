@@ -4,70 +4,12 @@ namespace LeanPHP\Console\InputOutput;
 
 abstract class AbstractOutput
 {
-    // TODO move colors in an enum
-    public const string COLOR_DEFAULT = 'default';
-    public const string COLOR_RED = 'red';
-    public const string COLOR_GREEN = 'green';
-    public const string COLOR_YELLOW = 'yellow';
-    public const string COLOR_BLUE = 'blue';
-    public const string COLOR_MAGENTA = 'magenta';
-    public const string COLOR_CYAN = 'cyan';
-    public const string COLOR_GRAY = 'gray';
-
     /**
-     * @var array<string, numeric-string>
+     * @param array<TerminalDisplayCode> $displayCodes
      */
-    protected array $colors = [
-        'default' => '0',
-        'red' => '1',
-        'green' => '2',
-        'brown' => '3',
-        'blue' => '4',
-        'magenta' => '5',
-        'cyan' => '6',
-        'gray' => '7',
-        'other1' => '8',
-    ];
-
-    protected function getColoredText(string $value, string $bgColor = null, string $textColor = null): string
+    public function write(string $value, array $displayCodes = []): void
     {
-        $color = '';
-        if ($bgColor !== null) {
-            $bgColor = $this->colors[$bgColor] ?? '';
-
-            if ($bgColor !== '') {
-                $bgColor = "4$bgColor";
-            }
-
-            $color = $bgColor;
-        }
-
-        if ($textColor !== null) {
-            $textColor = $this->colors[$textColor] ?? '';
-
-            if ($textColor !== '') {
-                $textColor = "3$textColor";
-            }
-
-            if ($color !== '' && $textColor !== '') {
-                $color .= ';';
-            }
-
-            $color .= $textColor;
-        }
-
-        if ($color === '') {
-            return $value;
-        }
-
-        return "\033[{$color}m" . $value . "\033[m";
-    }
-
-    public function write(string $value, string $bgColor = null, string $textColor = null): void
-    {
-        if ($bgColor !== null || $textColor !== null) {
-            $value = $this->getColoredText($value, $bgColor, $textColor);
-        }
+        $value = TerminalDisplayCode::getDecoratedString($value, $displayCodes);
 
         $this->writeOutput($value);
     }
@@ -76,12 +18,12 @@ abstract class AbstractOutput
 
     public function writeSuccess(string $value): void
     {
-        $this->write($value, self::COLOR_GREEN);
+        $this->write($value, [TerminalDisplayCode::BG_GREEN]);
     }
 
     public function writeError(string $value): void
     {
-        $this->write($value, self::COLOR_RED);
+        $this->write($value, [TerminalDisplayCode::BG_RED]);
     }
 
     /**
@@ -94,7 +36,7 @@ abstract class AbstractOutput
         foreach ($headers as $id => $header) {
             if ($id !== 0 && $colSeparator !== '') {
                 $header = $colSeparator . $header;
-                $headers[$id] = $header;
+                $headers[$id] = TerminalDisplayCode::getDecoratedString($header, [TerminalDisplayCode::BOLD]);
             }
             $colWidths[] = \strlen($header);
         }
