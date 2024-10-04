@@ -9,6 +9,7 @@ final readonly class Environment
     public static function readFileIfExists(
         string $filePath,
         string $envVarPattern = '/\s*(?<key>[A-Z0-9_-]+)\s*=(?<value>.+)\n?$/iU', // eg: SOME_ENV = "a value"
+        bool $overrideExistingVars = false,
     ): void {
         if (! file_exists($filePath)) {
             return;
@@ -34,7 +35,9 @@ final readonly class Environment
                 $value = substr($value, 1, -1);
             }
 
-            putenv("$key=$value");
+            if ($overrideExistingVars || getenv($key) === false) {
+                putenv("$key=$value");
+            }
         }
     }
 

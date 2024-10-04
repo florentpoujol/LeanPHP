@@ -17,13 +17,11 @@ use Whoops\Handler\PrettyPageHandler;
 use Whoops\Run;
 use Psr\Log\LoggerInterface;
 
-$environmentName = null;
-if (defined('APP_ENV_OVERRIDE')) {
-    $environmentName = APP_ENV_OVERRIDE;
-    assert(is_string($environmentName));
-}
+require_once __DIR__ . '/constants.php';
 
-if ($environmentName !== 'test') {
+$environmentName = Environment::getStringOrNull('APP_ENV');
+
+if ($environmentName !== TEST_ENV_NAME) {
     $whoopsErrorHandler = new Run();
     if (\PHP_SAPI === 'cli') {
         $whoopsErrorHandler->pushHandler(new PlainTextHandler());
@@ -48,8 +46,8 @@ if ((int)preg_match($envNameRegex, $environmentName) === 0) {
     throw new \Exception("The environment name '$environmentName' doesn't respect the regex '$envNameRegex'. Check the value of the APP_ENV variable.");
 }
 
-Environment::readFileIfExists(__DIR__ . "/../.env.$environmentName");
-Environment::readFileIfExists(__DIR__ . "/../.env.$environmentName.local");
+Environment::readFileIfExists(__DIR__ . "/../.env.$environmentName", overrideExistingVars: true);
+Environment::readFileIfExists(__DIR__ . "/../.env.$environmentName.local", overrideExistingVars: true);
 
 // Alternatively use https://github.com/vlucas/phpdotenv instead of the built-in env file reader:
 // Dotenv\Dotenv::createImmutable(__DIR__ . '/../', '.env')->safeload();
@@ -62,7 +60,7 @@ $container->setParameter('environmentName', $environmentName);
 
 require __DIR__ . '/../bootstrap/factories.php'; // fill the container
 
-if ($environmentName !== 'test') {
+if ($environmentName !== TEST_ENV_NAME) {
     assert(isset($whoopsErrorHandler));
     $whoopsErrorHandler->pushHandler(new CallbackHandler(function (\Throwable $exception) use ($container): void {
         $logger = $container->get(LoggerInterface::class);

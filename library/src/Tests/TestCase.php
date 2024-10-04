@@ -21,11 +21,7 @@ abstract class TestCase extends PHPUnitTestCase
 
     protected function initContainer(): void
     {
-        if (!\defined('APP_ENV_OVERRIDE')) {
-            \define('APP_ENV_OVERRIDE', 'test');
-        }
-
-        require __DIR__ . '/../../../bootstrap/app.php';
+        require BASE_APP_PATH . '/bootstrap/init-container.php';
 
         \assert(isset($container) && $container instanceof Container);
 
@@ -38,13 +34,6 @@ abstract class TestCase extends PHPUnitTestCase
      */
     public function doRequest(string $method, string $uri, array $headers = [], null|array|string $body = null): TestResponse
     {
-        // create server request
-        // create kernel and pass the
-
-        // note Florent 27/09/24: using FastRoute instead of the built-in slow/dumb router, but only if we do not care to insert the matched route object into the container.
-        // Customizing FastRoute to allow that is basically not possible.
-        // Eventually replace by the Symfony router, or at least do something similar to the Tempest router that also build a single regex (but in a way different from FastRoute).
-
         $httpKernel = new HttpKernel($this->container);
 
         if (\is_array($body)) {
@@ -55,7 +44,7 @@ abstract class TestCase extends PHPUnitTestCase
         $serverRequest = new ServerRequest(new PsrServerRequest($method, $uri, $headers, $body));
 
         $response = $httpKernel->handle(
-            require __DIR__ . '/../../../bootstrap/routes.php',
+            require BASE_APP_PATH . '/bootstrap/routes.php',
             $serverRequest,
         );
 

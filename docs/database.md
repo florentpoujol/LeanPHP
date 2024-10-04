@@ -44,11 +44,13 @@ return new class extends AbstractMigration
 
 ### Running migrations
 
-Run the `bin/migrations` CLI command, it will run by default with the database connection configured for the current environment.
+Run the `bin/migrate` CLI command, it will run by default with the database connection configured for the current environment.
 
-To run the migration for a specific environment (useful to migrate the tests database), run it with the `--env=test` option (assuming your test env is named `test`).
+To run the migration for a specific environment (useful to migrate the test database for instance), set the `APP_ENV` variable before running the command: `APP_ENV=test bin/migrate`.
 
 The migrations that have already run are saved in a table named by default `leanphp_migrations` so that running the command only run the migration that haven't been applied already.
+
+To delete all the database data and run all migrations again, run the command with the `fresh` argument: `bin/migrate fresh`.
 
 
 ## Seeding data
@@ -63,12 +65,12 @@ The files can be regular `.sql` files, or `.php` files that return an instance o
 
 ## Running seeders
 
-Run the `bin/seeders` CLI command, it will run by default with the database connection configured for the current environment.
+Run the `bin/seed` CLI command, it will run by default with the database connection configured for the current environment.
 
-To run the seeders for a specific environment (useful to target the tests database), run it with the `--env=test` option (assuming your test env is named `test`).
+To run the seeders for a specific environment (useful to seed the test database for instance), set the `APP_ENV` variable before running the command: `APP_ENV=test bin/migrate`.
 
 Unlike migrations, we do not keep track of which seeders have run. 
 Typically, this is fine since the main usage of seeder is to fill a database just after it has been freshly migrated.
 
 You can also run a single seeder file by putting its name as argument : 
-`bin/seeders 20241002155300_my_seeder`.
+`bin/seed 20241002155300_my_seeder`.

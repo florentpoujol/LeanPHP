@@ -6,7 +6,7 @@ use LeanPHP\Http\ServerRequest;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-require_once __DIR__ . '/../bootstrap/app.php';
+require_once __DIR__ . '/../bootstrap/init-container.php';
 
 assert(isset($container) && $container instanceof Container);
 
