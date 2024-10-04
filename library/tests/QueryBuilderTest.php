@@ -7,8 +7,9 @@ declare(strict_types=1);
 namespace Tests\LeanPHP;
 
 use DateTime;
-use LeanPHP\Database\EntityHydrator;
 use LeanPHP\Database\QueryBuilder;
+use LeanPHP\EntityHydrator\DataToPropertyMap;
+use LeanPHP\EntityHydrator\EntityHydrator;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -547,20 +548,27 @@ final class QueryBuilderTest extends TestCase
         self::assertInstanceOf(MyEntity::class, $entries[0]);
         self::assertSame(1, $entries[0]->getId());
         self::assertSame('Florent2', $entries[0]->name);
+        self::assertSame('flo@flo2.fr', $entries[0]->theEmail);
         self::assertSame($now, $entries[0]->getCreatedAt()->format('Y-m-d H:i:s'));
         self::assertSame($now, $entries[0]->getUpdatedAt()->format('Y-m-d H:i:s'));
 
         self::assertSame(2, $entries[1]->getId());
         self::assertSame('Florent3', $entries[1]->name);
+        self::assertSame('flo@flo3.fr', $entries[1]->theEmail);
         self::assertSame($now, $entries[1]->getCreatedAt()->format('Y-m-d H:i:s'));
         self::assertSame($now, $entries[1]->getUpdatedAt()->format('Y-m-d H:i:s'));
     }
 }
 
+#[DataToPropertyMap([
+    'email' => 'theEmail',
+    'created_at' => 'createdAt',
+])]
 final class MyEntity
 {
     private readonly int $id; // @phpstan-ignore-line (prop is never written, only read)
     public string $name;
+    public string $theEmail;
     private readonly string $createdAt; // @phpstan-ignore-line (prop is never written, only read)
     private readonly string $updatedAt; // @phpstan-ignore-line (prop is never written, only read)
 
