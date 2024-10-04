@@ -4,8 +4,6 @@ namespace LeanPHP\Database;
 
 use LeanPHP\Container;
 use PDO;
-use ReflectionClass;
-use ReflectionException;
 use Stringable;
 
 /**
@@ -21,7 +19,7 @@ final class QueryBuilder
             self::$_pdo = Container::self()->get(PDO::class);
         }
 
-        $qb = new self(self::$_pdo);
+        $qb = new self(self::$_pdo, new EntityHydrator());
 
         if ($table !== null) {
             $qb->table($table);
@@ -32,6 +30,7 @@ final class QueryBuilder
 
     public function __construct(
         private readonly PDO $pdo,
+        private readonly ?EntityHydratorInterface $entityHydrator = null,
     ) {
     }
 
@@ -42,7 +41,7 @@ final class QueryBuilder
 
     public function new(): self
     {
-        return (new self($this->pdo))->inTable($this->table);
+        return (new self($this->pdo, $this->entityHydrator))->inTable($this->table);
         // for some reason with SQLite memory, this seems to reset the connexion, and thus the DB ?
     }
 
@@ -129,7 +128,11 @@ final class QueryBuilder
             return $rows;
         }
 
-        return $this->getHydratedEntities($rows);
+        // This is actually checked in the hydrate method
+        // so in practice we know this is the case when the fqcn is not null.
+        \assert($this->entityHydrator instanceof EntityHydratorInterface);
+
+        return $this->entityHydrator->hydrateMany($rows, $this->hydrateEntityFqcn);
     }
 
     /**
@@ -160,52 +163,13 @@ final class QueryBuilder
      */
     public function hydrate(string $entityFqcn): self
     {
+        if ($this->entityHydrator === null) {
+            throw new \UnexpectedValueException('No hydrator set on the instance of the query builder');
+        }
+
         $this->hydrateEntityFqcn = $entityFqcn;
 
         return $this;
-    }
-
-    /**
-     * @param array<array<string, bool|int|string>> $rows
-     *
-     * @return array<HydratedEntityType>
-     */
-    private function getHydratedEntities(array $rows): array
-    {
-        $entity = new $this->hydrateEntityFqcn();
-        $reflectionClass = new ReflectionClass($entity);
-
-        $arrayKeys = array_keys($rows[0]);
-
-        /** @var array<string, \ReflectionProperty> $reflectionProperties */
-        $reflectionProperties = [];
-        foreach ($arrayKeys as $arrayKey) {
-            $propertyName = $arrayKey;
-            if (str_contains($arrayKey, '_')) {
-                // transform camel_case to snakeCase
-                $propertyName = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $arrayKey))));
-            }
-
-            try {
-                $reflectionProperties[$arrayKey] = $reflectionClass->getProperty($propertyName);
-                $reflectionProperties[$arrayKey]->setAccessible(true);
-            } catch (ReflectionException) {
-                // the array key doesn't match a property
-            }
-        }
-
-        /** @var array<HydratedEntityType> $entities */
-        $entities = [];
-        foreach ($rows as $row) {
-            $rowEntity = clone $entity;
-            $entities[] = $rowEntity;
-
-            foreach ($reflectionProperties as $arrayKey => $reflectionProperty) {
-                $reflectionProperty->setValue($rowEntity, $row[$arrayKey]);
-            }
-        }
-
-        return $entities;
     }
 
     private function buildSelectQueryString(): string

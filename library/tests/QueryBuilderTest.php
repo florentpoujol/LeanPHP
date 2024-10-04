@@ -7,6 +7,7 @@ declare(strict_types=1);
 namespace Tests\LeanPHP;
 
 use DateTime;
+use LeanPHP\Database\EntityHydrator;
 use LeanPHP\Database\QueryBuilder;
 use PDO;
 use PDOException;
@@ -30,13 +31,16 @@ final class QueryBuilderTest extends TestCase
           `id` INTEGER PRIMARY KEY AUTOINCREMENT,
           `name` TEXT NOT NULL,
           `email` TEXT,
-          `created_at` DATETIME
+          `created_at` DATETIME,
+          `updatedAt` DATETIME default current_timestamp
         );
         CREATE UNIQUE INDEX test_name_uindex ON test (name);
         SQL;
 
         $this->pdo->exec($createTable);
     }
+
+
 
     public function test_insert_single(): void
     {
@@ -515,7 +519,7 @@ final class QueryBuilderTest extends TestCase
     public function test_hydratation(): void
     {
         // act
-        $qb = new QueryBuilder($this->pdo);
+        $qb = new QueryBuilder($this->pdo, new EntityHydrator());
         $now = date('Y-m-d H:i:s');
         $qb
             ->inTable('test')
@@ -524,11 +528,13 @@ final class QueryBuilderTest extends TestCase
                     'name' => 'Florent2',
                     'email' => 'flo@flo2.fr',
                     'created_at' => $now,
+                    'updatedAt' => $now,
                 ],
                 [
                     'name' => 'Florent3',
                     'email' => 'flo@flo3.fr',
                     'created_at' => $now,
+                    'updatedAt' => $now,
                 ],
             ]);
 
@@ -542,10 +548,12 @@ final class QueryBuilderTest extends TestCase
         self::assertSame(1, $entries[0]->getId());
         self::assertSame('Florent2', $entries[0]->name);
         self::assertSame($now, $entries[0]->getCreatedAt()->format('Y-m-d H:i:s'));
+        self::assertSame($now, $entries[0]->getUpdatedAt()->format('Y-m-d H:i:s'));
 
         self::assertSame(2, $entries[1]->getId());
         self::assertSame('Florent3', $entries[1]->name);
         self::assertSame($now, $entries[1]->getCreatedAt()->format('Y-m-d H:i:s'));
+        self::assertSame($now, $entries[1]->getUpdatedAt()->format('Y-m-d H:i:s'));
     }
 }
 
@@ -554,6 +562,7 @@ final class MyEntity
     private readonly int $id; // @phpstan-ignore-line (prop is never written, only read)
     public string $name;
     private readonly string $createdAt; // @phpstan-ignore-line (prop is never written, only read)
+    private readonly string $updatedAt; // @phpstan-ignore-line (prop is never written, only read)
 
     public function getId(): int
     {
@@ -563,5 +572,10 @@ final class MyEntity
     public function getCreatedAt(): DateTime
     {
         return new DateTime($this->createdAt);
+    }
+
+    public function getUpdatedAt(): DateTime
+    {
+        return new DateTime($this->updatedAt);
     }
 }
