@@ -16,7 +16,7 @@ parameters:
         - tests
 
     ignoreErrors:
-        - '#Method .+ has parameter \$container with generic class LeanPHP\\Container but does not specify its types: ServiceType#' # needed until we figure out the genericity in the Container
+        - '#.+with generic class LeanPHP\\Container (but )?does not specify its types: ServiceType#' # needed until we figure out the genericity in the Container
         - '#Parameter \#(1|3) \$(level|context) .*of method .+::log\(\) should be contravariant with parameter \$(level|context) \((mixed|array)\) of method Psr\\Log\\.+::log\(\)#' # library logging
         - '#Parameter \#1 \$level of method .+::handleLevel\(\) expects .*, string given\.#' # library logging
         -

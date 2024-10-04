@@ -1,12 +1,13 @@
 <?php declare(strict_types=1);
 
-namespace Tests;
+namespace Tests\LeanPHP;
 
+use MainTest;
 use PHPUnit\Framework\TestCase;
 
-final class DefaultTest extends TestCase
+final class Test extends TestCase
 {
-    public function test_test(): void
+    public function test_main(): void
     {
         self::assertTrue(true);
     }
