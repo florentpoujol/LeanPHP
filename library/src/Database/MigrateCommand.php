@@ -4,6 +4,7 @@ namespace LeanPHP\Database;
 
 use LeanPHP\Console\InputOutput\AbstractInput;
 use LeanPHP\Console\InputOutput\AbstractOutput;
+use LeanPHP\Console\InputOutput\TerminalDisplayCode;
 
 final readonly class MigrateCommand
 {
@@ -91,6 +92,18 @@ final readonly class MigrateCommand
         return 0;
     }
 
+    // Note : doesn't make sens for that method to be there,
+    // should be in the input class or a base command class
+    private function promptConfirm(string $question = 'Confirm ? [y/n]'): bool
+    {
+        $this->output->write($question);
+
+        $returned = fgets(\STDIN); // this is blocking, and await an input from the terminal
+        \assert(\is_string($returned));
+
+        return strtolower($returned[0]) === 'y';
+    }
+
     private function migrateFresh(): void
     {
         // delete all tables, or the whole db
@@ -110,8 +123,20 @@ final readonly class MigrateCommand
         }
 
         \assert(\is_array($tables));
-        $count = \count($tables);
-        $this->output->writeError("Dropping $count tables.");
+        $tableCount = \count($tables);
+
+        $message = TerminalDisplayCode::getDecoratedString(
+            "This will delete $tableCount tables and all data in the database " .
+            "for environment '$this->environmentName'. \nAre you sure ? [y/n]",
+            [TerminalDisplayCode::BG_RED],
+        );
+        if (! $this->promptConfirm($message)) {
+            $this->output->writeSuccess('Cancelled');
+
+            return;
+        }
+
+        $this->output->writeError("Dropping $tableCount tables.");
 
         foreach ($tables as $table) {
             $this->pdo->exec("drop table `$table`;");
