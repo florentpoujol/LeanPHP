@@ -5,7 +5,6 @@ namespace Tests\LeanPHP;
 use LeanPHP\Container;
 use LeanPHP\EntityHydrator\DataToPropertyMap;
 use LeanPHP\EntityHydrator\EntityHydrator;
-use MainTest;
 use PHPUnit\Framework\TestCase;
 
 final class EntityHydratorTest extends TestCase
@@ -24,6 +23,7 @@ final class EntityHydratorTest extends TestCase
             'pk' => '1',
             'email' => 'the email',
             'firstName' => null,
+            'enum' => 'test',
             'created_at' => '2024-10-05 11:27:00',
             'updated_at' => '2024-10-05 11:27:00',
         ];
@@ -37,6 +37,7 @@ final class EntityHydratorTest extends TestCase
         self::assertSame((int) $data['pk'], $entity->getId());
         self::assertSame($data['email'], $entity->getEmail());
         self::assertSame($data['firstName'], $entity->firstName);
+        self::assertSame(MyEnumHydratorTest::TEST, $entity->enum);
         self::assertSame($data['created_at'], $entity->getCreatedAt()->format('Y-m-d H:i:s'));
         self::assertInstanceOf(\DateTime::class, $entity->updated_at);
         self::assertSame($data['updated_at'], $entity->updated_at->format('Y-m-d H:i:s'));
@@ -51,6 +52,7 @@ final class EntityHydratorTest extends TestCase
             'pk' => '1',
             'email' => 'the email',
             'firstName' => null,
+            'enum' => 'test',
             'created_at' => '2024-10-05 11:27:00',
             'updated_at' => '2024-10-05 11:27:00',
         ];
@@ -64,6 +66,7 @@ final class EntityHydratorTest extends TestCase
         self::assertSame((int) $data['pk'], $entity->getId());
         self::assertSame($data['email'], $entity->getEmail());
         self::assertSame($data['firstName'], $entity->firstName);
+        self::assertSame(MyEnumHydratorTest::TEST, $entity->enum);
         self::assertSame($data['created_at'], $entity->getCreatedAt()->format('Y-m-d H:i:s'));
         self::assertInstanceOf(\DateTime::class, $entity->updated_at);
         self::assertSame($data['updated_at'], $entity->updated_at->format('Y-m-d H:i:s'));
@@ -83,6 +86,7 @@ final class EntityHydratorTest extends TestCase
             'pk' => '1',
             'email' => 'the email',
             'firstName' => null,
+            'enum' => 'test',
             'created_at' => '2024-10-05 11:27:00',
             'updated_at' => '2024-10-05 11:27:00',
         ];
@@ -99,10 +103,16 @@ final class EntityHydratorTest extends TestCase
         self::assertSame((int) $data['pk'], $entity->getId());
         self::assertSame($data['email'], $entity->getEmail());
         self::assertSame($data['firstName'], $entity->firstName);
+        self::assertSame(MyEnumHydratorTest::TEST, $entity->enum);
         self::assertSame($data['created_at'], $entity->getCreatedAt()->format('Y-m-d H:i:s'));
         self::assertInstanceOf(\DateTime::class, $entity->updated_at);
         self::assertSame($data['updated_at'], $entity->updated_at->format('Y-m-d H:i:s'));
     }
+}
+
+enum MyEnumHydratorTest: string
+{
+    case TEST = 'test';
 }
 
 #[DataToPropertyMap([
@@ -114,6 +124,7 @@ final class MyHydratorTestEntity
     private readonly int $id; // @phpstan-ignore-line (Property ... is never written, only read.)
     protected string $email;
     public ?string $firstName;
+    public MyEnumHydratorTest $enum;
     private readonly \DateTimeImmutable $createdAt; // @phpstan-ignore-line (Property ... is never written, only read.)
     public \DateTimeInterface $updated_at;
 

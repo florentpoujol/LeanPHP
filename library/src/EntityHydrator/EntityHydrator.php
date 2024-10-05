@@ -133,12 +133,28 @@ final class EntityHydrator implements EntityHydratorInterface
         /** @var class-string $propertyType */
 
         if (!interface_exists($propertyType)) {
-            $reflectionProperty->setValue($entity, new $propertyType($value));
+            if (!enum_exists($propertyType)) {
+                $reflectionProperty->setValue($entity, new $propertyType($value));
 
-            return;
+                return;
+            }
+
+            if ((new \ReflectionEnum($propertyType))->isBacked()) {
+                \assert(\is_int($value) || \is_string($value));
+                /** @var \BackedEnum $propertyType */
+
+                $reflectionProperty->setValue($entity, $propertyType::from($value));
+
+                return;
+            }
+
+            $propertyName = $reflectionProperty->getName();
+            $className = $entity::class;
+            throw new \Exception("Can't hydrate property '$className::$$propertyName' because its type is the non-backed enum '$propertyType'.");
         }
 
-        // else this is an interface so we have to resolve the binding from the container
+        // Else this is an interface so we have to resolve the binding from the container.
+        // Note that we don't support here interfaces that are added on enums.
 
         $container = Container::getInstance();
         $binding = $container->getBinding($propertyType);
