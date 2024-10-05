@@ -52,7 +52,7 @@ __construct(
 )
 
 // or anywhere else
-$container = LeanPHP\Container::self();
+$container = LeanPHP\Container::getInstance();
 ```
 
 Then you can use its two methods :

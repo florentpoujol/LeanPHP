@@ -32,17 +32,16 @@ final class Container
      */
     private array $instances = [];
 
-    public function __construct()
+    private function __construct()
     {
         $this->instances[self::class] = $this; // @phpstan-ignore-line
-        self::$self = $this;
     }
 
-    private static self $self; // @phpstan-ignore-line (Property LeanPHP\Container::$self with generic class LeanPHP\Container does not specify its types: ServiceType)
+    private static ?self $self = null; // @phpstan-ignore-line (Property LeanPHP\Container::$self with generic class LeanPHP\Container does not specify its types: ServiceType)
 
-    public static function self(): self // @phpstan-ignore-line (basically same as above)
+    public static function getInstance(): self // @phpstan-ignore-line (basically same as above)
     {
-        return self::$self;
+        return self::$self ??= new self();
     }
 
     /**
@@ -56,6 +55,16 @@ final class Container
         } else {
             $this->bindings[$abstractFQCN] = $concreteFQCN;
         }
+    }
+
+    /**
+     * @param class-string<ServiceType> $abstractFQCN
+     *
+     * @return null|class-string<ServiceType>|(callable(): ServiceType)
+     */
+    public function getBinding(string $abstractFQCN): null|string|callable
+    {
+        return $this->bindings[$abstractFQCN] ?? null;
     }
 
     /**

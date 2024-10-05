@@ -540,12 +540,12 @@ final class QueryBuilderTest extends TestCase
             ]);
 
         // assert
-        /** @var array<MyEntity> $entries */
+        /** @var array<MyQBTestEntity> $entries */
         $entries = $qb->reset()
-            ->hydrate(MyEntity::class)
+            ->hydrate(MyQBTestEntity::class)
             ->selectMany();
 
-        self::assertInstanceOf(MyEntity::class, $entries[0]);
+        self::assertInstanceOf(MyQBTestEntity::class, $entries[0]);
         self::assertSame(1, $entries[0]->getId());
         self::assertSame('Florent2', $entries[0]->name);
         self::assertSame('flo@flo2.fr', $entries[0]->theEmail);
@@ -564,7 +564,7 @@ final class QueryBuilderTest extends TestCase
     'email' => 'theEmail',
     'created_at' => 'createdAt',
 ])]
-final class MyEntity
+final class MyQBTestEntity
 {
     private readonly int $id; // @phpstan-ignore-line (prop is never written, only read)
     public string $name;

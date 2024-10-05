@@ -18,11 +18,11 @@ interface EntityHydratorInterface
     /**
      * @template T of object
      *
-     * @param array<array<string, mixed>> $data
+     * @param array<array<string, mixed>> $rows
      * @param class-string<T> $fqcn
      * @param array<string, string> $dataToPropertyMap Keys are data keys, values are the property names
      *
      * @return array<T>
      */
-    public function hydrateMany(array $data, string $fqcn, array $dataToPropertyMap = []): array;
+    public function hydrateMany(array $rows, string $fqcn, array $dataToPropertyMap = []): array;
 }

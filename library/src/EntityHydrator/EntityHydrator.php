@@ -2,6 +2,7 @@
 
 namespace LeanPHP\EntityHydrator;
 
+use LeanPHP\Container;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionProperty;
@@ -21,32 +22,25 @@ final class EntityHydrator implements EntityHydratorInterface
      */
     public function hydrateOne(array $data, string $fqcn, array $dataToPropertyMap = []): object
     {
-        $entity = new $fqcn;
-
-        $reflectionProperties = $this->getReflectionProperties(array_keys($data), $fqcn, $dataToPropertyMap);
-        foreach ($reflectionProperties as $dataKey => $reflectionProperty) {
-            $reflectionProperty->setValue($entity, $data[$dataKey]);
-        }
-
-        return $entity;
+        return $this->hydrateMany([$data], $fqcn, $dataToPropertyMap)[0];
     }
 
     /**
      * @inheritDoc
      */
-    public function hydrateMany(array $data, string $fqcn, array $dataToPropertyMap = []): array
+    public function hydrateMany(array $rows, string $fqcn, array $dataToPropertyMap = []): array
     {
-        $reflectionProperties = $this->getReflectionProperties(array_keys($data[0]), $fqcn, $dataToPropertyMap);
+        $reflectionProperties = $this->getReflectionProperties(array_keys($rows[0]), $fqcn, $dataToPropertyMap);
 
         $entities = [];
         $cloneSource = new $fqcn;
 
-        foreach ($data as $row) {
-            $rowEntity = clone $cloneSource;
-            $entities[] = $rowEntity;
+        foreach ($rows as $row) {
+            $entity = clone $cloneSource;
+            $entities[] = $entity;
 
             foreach ($reflectionProperties as $dataKey => $reflectionProperty) {
-                $reflectionProperty->setValue($rowEntity, $row[$dataKey]);
+                $this->setPropertyValue($entity, $reflectionProperty, $row[$dataKey]);
             }
         }
 
@@ -100,5 +94,66 @@ final class EntityHydrator implements EntityHydratorInterface
         $reflAttributes = (new ReflectionClass($fqcn))->getAttributes(DataToPropertyMap::class, ReflectionAttribute::IS_INSTANCEOF);
 
         $this->dataToPropertyMapPerEntityFqcn[$fqcn] = $reflAttributes[0]->getArguments()[0] ?? [];
+    }
+
+    private function setPropertyValue(object $entity, ReflectionProperty $reflectionProperty, mixed $value): void
+    {
+        $reflectionType = $reflectionProperty->getType();
+        if ($reflectionType === null) {
+            $reflectionProperty->setValue($entity, $value);
+
+            return;
+        }
+
+        if ($value === null && $reflectionType->allowsNull()) {
+            $reflectionProperty->setValue($entity, null);
+
+            return;
+        }
+
+        if ($reflectionType instanceof \ReflectionUnionType || $reflectionType instanceof \ReflectionIntersectionType) {
+            $propertyName = $reflectionProperty->getName();
+            $className = $entity::class;
+            throw new \Exception("The hydrator do not support intersection or union types, for property '$className::$$propertyName'.");
+        }
+
+        /** @var \ReflectionNamedType $reflectionType */
+        $propertyType = $reflectionType->getName();
+
+        if (
+            get_debug_type($value) === $propertyType
+            || $reflectionType->isBuiltin() // in this case we hope the value can be cast to the correct type, otherwise throws a type error
+        ) {
+            $reflectionProperty->setValue($entity, $value);
+
+            return;
+        }
+
+        // we are here, the declared type is not built-in, so it's a class/interface
+        /** @var class-string $propertyType */
+
+        if (!interface_exists($propertyType)) {
+            $reflectionProperty->setValue($entity, new $propertyType($value));
+
+            return;
+        }
+
+        // else this is an interface so we have to resolve the binding from the container
+
+        $container = Container::getInstance();
+        $binding = $container->getBinding($propertyType);
+
+        if ($binding === null) {
+            $propertyName = $reflectionProperty->getName();
+            $className = $entity::class;
+            throw new \Exception("Can't hydrate property '$className::$$propertyName' because its type is the interface '$propertyType' and no concrete implementation can be resolved from the container.");
+        }
+
+        if (\is_string($binding)) {
+            $reflectionProperty->setValue($entity, new $binding($value));
+        } else {
+            // $binding is the callable factory
+            $reflectionProperty->setValue($entity, $binding($container, $value)); // @phpstan-ignore-line (Callable callable(): object invoked with 2 parameters, 0 required.)
+        }
     }
 }

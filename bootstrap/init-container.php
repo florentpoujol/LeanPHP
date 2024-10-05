@@ -55,7 +55,7 @@ Environment::readFileIfExists(__DIR__ . "/../.env.$environmentName.local", overr
 // --------------------------------------------------
 // Load bootstrap
 
-$container = new Container();
+$container = Container::getInstance();
 $container->setParameter('environmentName', $environmentName);
 
 require __DIR__ . '/../bootstrap/factories.php'; // fill the container

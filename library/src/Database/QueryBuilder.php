@@ -18,7 +18,7 @@ final class QueryBuilder
     public static function make(string $table = null): self
     {
         if (self::$_pdo === null) {
-            self::$_pdo = Container::self()->get(PDO::class);
+            self::$_pdo = Container::getInstance()->get(PDO::class);
         }
 
         $qb = new self(self::$_pdo, new EntityHydrator());

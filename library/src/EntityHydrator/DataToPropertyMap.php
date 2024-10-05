@@ -7,7 +7,7 @@ final readonly class DataToPropertyMap
 {
     public function __construct(
         /**
-         * @var array<string, string> Keys are data keys, values are property names
+         * @var array<string, string> Keys are the data keys, values are the property names
          */
         public array $map,
     ) {
