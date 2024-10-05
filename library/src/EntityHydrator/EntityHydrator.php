@@ -33,10 +33,10 @@ final class EntityHydrator implements EntityHydratorInterface
         $reflectionProperties = $this->getReflectionProperties(array_keys($rows[0]), $fqcn, $dataToPropertyMap);
 
         $entities = [];
-        $cloneSource = new $fqcn;
+        $reflectionClass = new ReflectionClass($fqcn);
 
         foreach ($rows as $row) {
-            $entity = clone $cloneSource;
+            $entity = $reflectionClass->newInstanceWithoutConstructor();
             $entities[] = $entity;
 
             foreach ($reflectionProperties as $dataKey => $reflectionProperty) {

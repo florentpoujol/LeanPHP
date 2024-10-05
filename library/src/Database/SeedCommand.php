@@ -4,11 +4,13 @@ namespace LeanPHP\Database;
 
 use LeanPHP\Console\InputOutput\AbstractInput;
 use LeanPHP\Console\InputOutput\AbstractOutput;
+use LeanPHP\Container;
 
 final readonly class SeedCommand
 {
     public function __construct(
         private \PDO   $pdo,
+        private Container   $container,
         private string $seedsFolder = __DIR__ . '/../../../database/seeders', // FIXME default seeders path should depend on a "baseAppPath" or assume the lib is in the vendor folder
         private string $environmentName = 'prod',
     ) {
@@ -54,6 +56,7 @@ final readonly class SeedCommand
                 /** @var AbstractSeeder $seedInstance */
                 $seedInstance = require_once $this->seedsFolder . '/' . $file;
                 $seedInstance->setPdo($this->pdo);
+                $seedInstance->setContainer($this->container);
                 $seedInstance->run();
             } else {
                 $sql = file_get_contents($this->seedsFolder . '/' . $file);

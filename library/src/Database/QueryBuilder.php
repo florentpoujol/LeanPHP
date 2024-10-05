@@ -256,13 +256,19 @@ final class QueryBuilder
     {
         $this->action = $actionType;
 
-        $this->fields = array_keys((array) $rows[0]);
+        foreach ($rows as $i => $row) {
+            if ($row instanceof AbstractModel) {
+                $rows[$i] = $row->toDatabaseRow();
+            }
+        }
+
+        $this->fields = array_keys($rows[0]); // @phpstan-ignore-line (Property ... $fields (array<string>) does not accept array<int, int|string>.)
         $this->insertedRowCount = \count($rows);
 
         // flatten all rows values, hopefully they are in the same order
         $rowValues = [];
         foreach ($rows as $row) {
-            $rowValues[] = array_values((array) $row);  // this suppose here that all rows have the same key in the same order
+            $rowValues[] = array_values((array) $row);  // this supposes here that all rows have the same key in the same order
         }
 
         return $this->pdo
