@@ -172,7 +172,7 @@ final readonly class MigrateCommand
             } else {
                 $sql = file_get_contents($this->migrationFolder . '/' . $file);
                 \assert(\is_string($sql));
-                $this->pdo->query($sql);
+                $this->pdo->exec($sql);
             }
 
             // migration successful, register it
