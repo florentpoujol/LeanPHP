@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace LeanPHP;
 
+use LeanPHP\EntityHydrator\EntityHydrator;
+use LeanPHP\EntityHydrator\EntityHydratorInterface;
+use Nyholm\Psr7\Request;
+use Nyholm\Psr7\Response;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use ReflectionNamedType;
 use ReflectionUnionType;
 
@@ -17,7 +23,12 @@ final class Container
     /**
      * @var array<class-string<ServiceType>, (callable(): ServiceType)|class-string<ServiceType>>
      */
-    private array $bindings = [];
+    private array $bindings = [
+        ResponseInterface::class => Response::class,
+        RequestInterface::class => Request::class, // client request
+        \DateTimeInterface::class => \DateTimeImmutable::class,
+        EntityHydratorInterface::class => EntityHydrator::class,
+    ];
 
     /**
      * @var array<class-string<ServiceType>, (callable(): ServiceType)|class-string<ServiceType>>

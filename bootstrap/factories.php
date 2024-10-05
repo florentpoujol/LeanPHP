@@ -1,17 +1,13 @@
 <?php declare(strict_types=1);
 
 use LeanPHP\Container;
+use LeanPHP\Environment;
 use LeanPHP\Logging\ResourceLogger;
 use Nyholm\Psr7\Factory\Psr17Factory;
-use Nyholm\Psr7\Request;
-use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use Nyholm\Psr7Server\ServerRequestCreator;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
-use LeanPHP\Environment;
 
 assert(isset($container) && $container instanceof Container);
 
@@ -27,9 +23,6 @@ $container->setFactory(ServerRequestInterface::class, static function (): Server
 
     return $serverRequest;
 });
-
-$container->bind(ResponseInterface::class, Response::class);
-$container->bind(RequestInterface::class, Request::class); // client request
 
 // views
 $container->setParameter('baseViewPath', realpath(__DIR__ . '/../resources/views')); // for the ViewRenderer service
