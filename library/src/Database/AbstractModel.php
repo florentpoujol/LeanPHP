@@ -34,34 +34,30 @@ abstract class AbstractModel
      */
     public function toDatabaseRow(): array
     {
+        // TODO move that logic into a Marshaller/Serializer and take into account the data to property map
+
         $row = (array) $this; // this doesn't convert non scalar values
 
         foreach ($row as $key => $value) {
-            if (!\is_object($value)) {
+            if (\is_scalar($value)) {
                 continue;
             }
 
-            if ($value instanceof self) {
-                $row[$key] = $value->toDatabaseRow();
-
-                continue;
-            }
-
-            if ($value instanceof \Stringable) {
-                $row[$key] = (string) $value;
+            if (\is_array($value)) {
+                $row[$key] = json_encode($value); // what else is there to do ?
 
                 continue;
             }
 
-            if ($value instanceof \JsonSerializable) {
-                $row[$key] = $value->jsonSerialize();
-
-                continue;
-            }
-
-            if ($value instanceof \DateTimeInterface) {
-                $row[$key] = $value->format('Y-m-d H:i:s');
-            }
+            // $value is an object instance
+            $row[$key] = match (true) {
+                $value instanceof self => $value->toDatabaseRow(),
+                $value instanceof \Stringable => (string) $value,
+                $value instanceof \DateTimeInterface => $value->format('Y-m-d H:i:s'),
+                $value instanceof \BackedEnum => $value->value,
+                $value instanceof \JsonSerializable => $value->jsonSerialize(), // does this even make sens ?
+                default => throw new \UnexpectedValueException("Can't transform object of type '" . get_debug_type($value) . "' to scalar for property/key '" . $this::class . "::$$key'."),
+            };
         }
 
         return $row;

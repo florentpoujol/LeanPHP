@@ -82,6 +82,7 @@ abstract class AbstractModelFactory
         }
 
         $this->queryBuilder
+            ->reset()
             ->inTable($this->getModelFqcn()::getDatabaseTable())
             ->insertMany($rows);
     }
