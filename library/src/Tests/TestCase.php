@@ -3,6 +3,8 @@
 namespace LeanPHP\Tests;
 
 use LeanPHP\Container;
+use LeanPHP\Database\QueryBuilder;
+use LeanPHP\EntityHydrator\EntityHydratorInterface;
 use LeanPHP\Http\HttpKernel;
 use LeanPHP\Http\ServerRequest;
 use Nyholm\Psr7\ServerRequest as PsrServerRequest;
@@ -41,7 +43,10 @@ abstract class TestCase extends PHPUnitTestCase
             \assert(\is_string($body));
         }
 
-        $serverRequest = new ServerRequest(new PsrServerRequest($method, $uri, $headers, $body));
+        $serverRequest = new ServerRequest(
+            new PsrServerRequest($method, $uri, $headers, $body),
+            $this->container->get(EntityHydratorInterface::class),
+        );
 
         $response = $httpKernel->handle(
             require BASE_APP_PATH . '/bootstrap/routes.php',

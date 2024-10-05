@@ -2,6 +2,7 @@
 
 namespace LeanPHP\Database;
 
+use LeanPHP\Container;
 use LeanPHP\EntityHydrator\EntityHydrator;
 use LeanPHP\EntityHydrator\EntityHydratorInterface;
 
@@ -61,5 +62,15 @@ abstract class AbstractModel
         }
 
         return $row;
+    }
+
+    /**
+     * @return QueryBuilder<static>
+     */
+    public static function getQueryBuilder(): QueryBuilder
+    {
+        return Container::getInstance()
+            ->get(QueryBuilder::class)
+            ->hydrate(static::class);
     }
 }

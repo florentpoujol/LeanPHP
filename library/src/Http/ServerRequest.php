@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LeanPHP\Http;
 
+use LeanPHP\EntityHydrator\EntityHydratorInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Message\UriInterface;
@@ -12,6 +13,7 @@ final class ServerRequest
 {
     public function __construct(
         public readonly ServerRequestInterface $psrRequest,
+        private readonly EntityHydratorInterface $hydrator,
     ) {
     }
 
@@ -129,6 +131,19 @@ final class ServerRequest
         $this->parsedBody = $this->psrRequest->getParsedBody();
 
         return $this->parsedBody;
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function getBodyAsArray(): array
+    {
+        return $this->getParsedBody(jsonAsObject: true); // @phpstan-ignore-line (Method ...getBodyAsArray() should return array but returns array|object|null.)
+    }
+
+    public function getBodyAsObject(): object
+    {
+        return $this->getParsedBody(jsonAsObject: true); // @phpstan-ignore-line (Method ...getBodyAsArray() should return array but returns array|object|null.)
     }
 
     // --------------------------------------------------
@@ -276,5 +291,31 @@ final class ServerRequest
     public function getArrayQueryOrDefault(string $name, array $default): array
     {
         return (array) ($this->psrRequest->getQueryParams()[$name] ?? $default);
+    }
+
+    // --------------------------------------------------
+
+    /**
+     * @template T of object
+     *
+     * @param class-string<T> $fqcn
+     *
+     * @return T
+     */
+    public function hydrateBodyAsOne(string $fqcn): object
+    {
+        return $this->hydrator->hydrateOne($this->getBodyAsArray(), $fqcn);
+    }
+
+    /**
+     * @template T of object
+     *
+     * @param class-string<T> $fqcn
+     *
+     * @return array<T>
+     */
+    public function hydrateBodyAsMany(string $fqcn): array
+    {
+        return $this->hydrator->hydrateMany($this->getBodyAsArray(), $fqcn); // @phpstan-ignore-line (Parameter #1 $rows of method ...::hydrateMany() expects array<array<string, mixed>>, array given.)
     }
 }

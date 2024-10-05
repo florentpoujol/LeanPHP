@@ -160,6 +160,7 @@ final class QueryBuilder
      */
     private ?string $hydrateEntityFqcn = null;
 
+
     /**
      * @param class-string<HydratedEntityType> $entityFqcn
      */
@@ -170,6 +171,10 @@ final class QueryBuilder
         }
 
         $this->hydrateEntityFqcn = $entityFqcn;
+
+        if (is_a($entityFqcn, AbstractModel::class, true)) {
+            $this->fromTable($entityFqcn::getDatabaseTable());
+        }
 
         return $this;
     }

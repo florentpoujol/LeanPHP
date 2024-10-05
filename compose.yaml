@@ -6,6 +6,7 @@ services:
     working_dir: /var/leanphp-app
     volumes:
       - .:/var/leanphp-app
+    user: "1000:1000"
 
   nginx:
     image: nginx:latest
