@@ -45,9 +45,7 @@ The second argument is an associative array of variables that will exist in the 
 
 Example :
 ```php
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Http;
 
