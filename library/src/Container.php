@@ -6,6 +6,8 @@ namespace LeanPHP;
 
 use LeanPHP\EntityHydrator\EntityHydrator;
 use LeanPHP\EntityHydrator\EntityHydratorInterface;
+use LeanPHP\Hasher\BuiltInPasswordHasher;
+use LeanPHP\Hasher\HasherInterface;
 use Nyholm\Psr7\Request;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\RequestInterface;
@@ -28,6 +30,7 @@ final class Container
         RequestInterface::class => Request::class, // client request
         \DateTimeInterface::class => \DateTimeImmutable::class,
         EntityHydratorInterface::class => EntityHydrator::class,
+        HasherInterface::class => BuiltInPasswordHasher::class,
     ];
 
     /**
