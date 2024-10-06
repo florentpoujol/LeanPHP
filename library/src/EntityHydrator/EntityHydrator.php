@@ -120,6 +120,13 @@ final class EntityHydrator implements EntityHydratorInterface
         /** @var \ReflectionNamedType $reflectionType */
         $propertyType = $reflectionType->getName();
 
+        if (\is_string($value) && ($propertyType === 'array' || $propertyType === 'object')) {
+            $value = json_decode($value, $propertyType === 'array', flags: \JSON_THROW_ON_ERROR);
+            $reflectionProperty->setValue($entity, $value);
+
+            return;
+        }
+
         if (
             get_debug_type($value) === $propertyType
             || $reflectionType->isBuiltin() // in this case we hope the value can be cast to the correct type, otherwise throws a type error

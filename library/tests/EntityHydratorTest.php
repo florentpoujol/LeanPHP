@@ -6,6 +6,7 @@ use LeanPHP\Container;
 use LeanPHP\EntityHydrator\DataToPropertyMap;
 use LeanPHP\EntityHydrator\EntityHydrator;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 final class EntityHydratorTest extends TestCase
 {
@@ -26,6 +27,8 @@ final class EntityHydratorTest extends TestCase
             'enum' => 'test',
             'created_at' => '2024-10-05 11:27:00',
             'updated_at' => '2024-10-05 11:27:00',
+            'json_data_array' => '[1, 2, 3]',
+            'json_data_object' => '{"property":"value"}',
         ];
 
         Container::getInstance()->bind(\DateTimeInterface::class, \DateTime::class, isSingleton: false);
@@ -41,6 +44,10 @@ final class EntityHydratorTest extends TestCase
         self::assertSame($data['created_at'], $entity->getCreatedAt()->format('Y-m-d H:i:s'));
         self::assertInstanceOf(\DateTime::class, $entity->updated_at);
         self::assertSame($data['updated_at'], $entity->updated_at->format('Y-m-d H:i:s'));
+        self::assertSame([1, 2, 3], $entity->json_data_array);
+        $object = new stdClass();
+        $object->property = 'value';
+        self::assertEquals($object, $entity->json_data_object);
     }
 
     public function test_map_through_attribute(): void
@@ -127,6 +134,8 @@ final class MyHydratorTestEntity
     public MyEnumHydratorTest $enum;
     private readonly \DateTimeImmutable $createdAt; // @phpstan-ignore-line (Property ... is never written, only read.)
     public \DateTimeInterface $updated_at;
+    public array $json_data_array;
+    public object $json_data_object;
 
     public function getId(): int
     {
