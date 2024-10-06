@@ -29,4 +29,8 @@ parameters:
             message: '#Cannot access offset .+ on mixed\.#'
             paths:
                 - library/tests/QueryBuilderTest.php
+        -
+            message: '#Access to an undefined property LeanPHP\\Validation\\RuleEnum::\$value#'
+            paths:
+                - library/src/Validation/Validator.php
 

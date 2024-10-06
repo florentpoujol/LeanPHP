@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace LeanPHP;
 
@@ -29,14 +27,15 @@ final class Container
         ResponseInterface::class => Response::class,
         RequestInterface::class => Request::class, // client request
         \DateTimeInterface::class => \DateTimeImmutable::class,
-        EntityHydratorInterface::class => EntityHydrator::class,
         HasherInterface::class => BuiltInPasswordHasher::class,
     ];
 
     /**
      * @var array<class-string<ServiceType>, (callable(): ServiceType)|class-string<ServiceType>>
      */
-    private array $singletonBindings = [];
+    private array $singletonBindings = [
+        EntityHydratorInterface::class => EntityHydrator::class,
+    ];
 
     /**
      * Values cached by get().

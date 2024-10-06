@@ -1,20 +1,24 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
+use PhpCsFixer\Config;
+use PhpCsFixer\Finder;
 
-$finder = (new PhpCsFixer\Finder())
+$finder = (new Finder())
     ->in([
-        __DIR__.'/bin',
-        __DIR__.'/library',
-        __DIR__.'/bootstrap',
-        __DIR__.'/src',
-        __DIR__.'/tests',
+        __DIR__ . '/bin',
+        __DIR__ . '/library',
+        __DIR__ . '/bootstrap',
+        __DIR__ . '/src',
+        __DIR__ . '/tests',
+    ])
+    ->notPath([
+        // note Florent: this actually doesn't work no matter what value I set here
+        __DIR__ . '/library/src/Validation/Validator.php', // see line 404 ini \LeanPHP\Validation\Validator::passesParameterizedRule why it's excluded
     ])
 ;
 
-return (new PhpCsFixer\Config())
+return (new Config())
     ->setRules([
         '@Symfony:risky'  => true,
 

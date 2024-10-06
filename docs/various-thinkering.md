@@ -221,3 +221,4 @@ For running commands like the migrations, the seeders > or provide that with the
 - PhpViewRenderer: add layouts, easy escaping
 - seeder command: allow to have files in env-named folder ?
 - entity hydrator: make it recursive, have a default interface>implementation for common data interfaces like DateTimeInterface, allow to call the constructor ?
+- validator: revamp. remove "rule:values", to force use arrays, support objects that are not stdClass, add a "bridge" to be able to use the symfony component with our component, add "date-format" rule that uses DateTime::createFromFormat() 
