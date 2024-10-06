@@ -91,7 +91,12 @@ final class EntityHydrator implements EntityHydratorInterface
      */
     private function discoverDatToPropertyMapFromAttribute(string $fqcn): void
     {
+        $this->dataToPropertyMapPerEntityFqcn[$fqcn] = [];
+
         $reflAttributes = (new ReflectionClass($fqcn))->getAttributes(DataToPropertyMap::class, ReflectionAttribute::IS_INSTANCEOF);
+        if ($reflAttributes === []) {
+            return;
+        }
 
         $this->dataToPropertyMapPerEntityFqcn[$fqcn] = $reflAttributes[0]->getArguments()[0] ?? [];
     }

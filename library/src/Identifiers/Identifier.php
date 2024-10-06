@@ -4,7 +4,7 @@ namespace LeanPHP\Identifiers;
 
 use UnexpectedValueException;
 
-abstract class Identifier implements IdentifierInterface
+abstract class Identifier implements IdentifierInterface, \Stringable
 {
     /**
      * @var string A binary string
@@ -41,6 +41,11 @@ abstract class Identifier implements IdentifierInterface
         }
 
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split($hex, 4));
+    }
+
+    public function __toString(): string
+    {
+        return $this->getHex();
     }
 
     // --------------------------------------------------

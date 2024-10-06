@@ -13,6 +13,7 @@ final class HttpKernel
     public function __construct(
         private readonly Container $container,
     ) {
+        $container->setInstance(self::class, $this);
     }
 
     /**
@@ -40,11 +41,8 @@ final class HttpKernel
             return new Response($status, ['Location' => $location]);
         }
 
-        if ($route->hasPsr15Middleware()) {
+        // if ($route->hasPsr15Middleware()) {
             return $this->handleRequestThroughPsr15Middleware();
-        }
-
-        return $this->callRouteAction($route);
     }
 
     public function handleRequestThroughPsr15Middleware(): ResponseInterface

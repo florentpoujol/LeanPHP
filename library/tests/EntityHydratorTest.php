@@ -134,6 +134,9 @@ final class MyHydratorTestEntity
     public MyEnumHydratorTest $enum;
     private readonly \DateTimeImmutable $createdAt; // @phpstan-ignore-line (Property ... is never written, only read.)
     public \DateTimeInterface $updated_at;
+    /**
+     * @var array<mixed>
+     */
     public array $json_data_array;
     public object $json_data_object;
 

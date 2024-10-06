@@ -6,12 +6,14 @@ use LeanPHP\EntityHydrator\EntityHydrator;
 use LeanPHP\EntityHydrator\EntityHydratorInterface;
 use LeanPHP\Hasher\BuiltInPasswordHasher;
 use LeanPHP\Hasher\HasherInterface;
+use LeanPHP\Http\Psr15RequestHandler;
 use LeanPHP\Validation\Validator;
 use LeanPHP\Validation\ValidatorInterface;
 use Nyholm\Psr7\Request;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionNamedType;
 use ReflectionUnionType;
 
@@ -31,6 +33,7 @@ final class Container
         \DateTimeInterface::class => \DateTimeImmutable::class,
         HasherInterface::class => BuiltInPasswordHasher::class,
         ValidatorInterface::class => Validator::class,
+        RequestHandlerInterface::class => Psr15RequestHandler::class,
     ];
 
     /**
@@ -284,20 +287,22 @@ final class Container
             }
 
             $instance = null;
-            if ($paramIsMandatory) {
-                try {
-                    $instance = $this->get($typeName);
-                } catch (\Exception $exception) {
-                    if ($exception::class === 'Exception' && $exception->getCode() === 1) {
-                        $msg = "Constructor argument '$paramName' for class '$classFqcn' has type '$typeName' " .
-                            " but the container don't know how to resolve it.";
-
-                        throw new \Exception($msg);
+            try {
+                $instance = $this->get($typeName);
+            } catch (\Exception $exception) {
+                if ($exception::class === 'Exception' && $exception->getCode() === 1) {
+                    if (!$paramIsMandatory) { // error during an optional parameter, do nothing
+                        continue;
                     }
 
-                    // other exception in the factories, that must be propagated
-                    throw $exception;
+                    $msg = "Constructor argument '$paramName' for class '$classFqcn' has type '$typeName' " .
+                        " but the container don't know how to resolve it.";
+
+                    throw new \Exception($msg);
                 }
+
+                // other exception in the factories, that must be propagated
+                throw $exception;
             }
 
             $args[$paramName] = $instance;

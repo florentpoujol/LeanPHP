@@ -16,9 +16,12 @@ assert(isset($container) && $container instanceof Container);
 
 $httpKernel = new HttpKernel($container);
 
+$serverRequest = $container->get(ServerRequest::class);
+$container->setInstance(ServerRequest::class, $serverRequest);
+
 $response = $httpKernel->handle(
     require_once __DIR__ . '/../bootstrap/routes.php',
-    $container->get(ServerRequest::class),
+    $serverRequest,
 );
 
 $httpKernel->sendResponse($response);

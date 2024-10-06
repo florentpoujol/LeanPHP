@@ -3,6 +3,7 @@
 namespace LeanPHP\Http;
 
 use LeanPHP\EntityHydrator\EntityHydratorInterface;
+use LeanPHP\Http\Session\Session;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Message\UriInterface;
@@ -315,5 +316,28 @@ final class ServerRequest
     public function hydrateBodyAsMany(string $fqcn): array
     {
         return $this->hydrator->hydrateMany($this->getBodyAsArray(), $fqcn); // @phpstan-ignore-line (Parameter #1 $rows of method ...::hydrateMany() expects array<array<string, mixed>>, array given.)
+    }
+
+    // --------------------------------------------------
+
+    private ?Session $session = null;
+
+    public function setSession(Session $session): void
+    {
+        $this->session = $session;
+    }
+
+    public function getSessionOrThrow(): Session
+    {
+        if ($this->session === null) {
+            throw new \UnexpectedValueException('No session has be set in this request object');
+        }
+
+        return $this->session;
+    }
+
+    public function getSessionOrNull(): ?Session
+    {
+        return $this->session;
     }
 }

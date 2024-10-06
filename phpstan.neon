@@ -46,3 +46,8 @@ parameters:
             message: '#Cannot access offset string on array<array<LeanPHP\\FileSystem\\FileInfo>|LeanPHP\\FileSystem\\FileInfo>|LeanPHP\\FileSystem\\FileInfo\.#'
             paths:
                 - library/src/FileSystem/ArrayFileSystem.php
+        -
+            message: '#Method LeanPHP\\Http\\AbstractResponse::.+ should return static\(LeanPHP\\Http\\AbstractResponse\) but returns Psr\\Http\\Message\\ResponseInterface\.#'
+            paths:
+                - library/src/Http/AbstractResponse.php
+

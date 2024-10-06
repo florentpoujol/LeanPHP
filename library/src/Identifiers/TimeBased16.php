@@ -10,7 +10,10 @@ final class TimeBased16 extends Identifier
     protected function generate(): string
     {
         $time = gettimeofday();
-        $hexTime = '0' . dechex((int) ($time['sec'] . $time['usec']));
+        $hexTime = dechex((int) ($time['sec'] . $time['usec']));
+        if (\strlen($hexTime) % 2 !== 0) {
+            $hexTime = '0' . $hexTime;
+        }
         // as of 2022, and until 2112, the hex version of the microtimestamp is 13 chars long, so we pad it here to 14
 
         return hex2bin($hexTime) . random_bytes(9);
