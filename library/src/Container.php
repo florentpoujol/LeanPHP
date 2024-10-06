@@ -6,6 +6,8 @@ use LeanPHP\EntityHydrator\EntityHydrator;
 use LeanPHP\EntityHydrator\EntityHydratorInterface;
 use LeanPHP\Hasher\BuiltInPasswordHasher;
 use LeanPHP\Hasher\HasherInterface;
+use LeanPHP\Validation\Validator;
+use LeanPHP\Validation\ValidatorInterface;
 use Nyholm\Psr7\Request;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\RequestInterface;
@@ -28,6 +30,7 @@ final class Container
         RequestInterface::class => Request::class, // client request
         \DateTimeInterface::class => \DateTimeImmutable::class,
         HasherInterface::class => BuiltInPasswordHasher::class,
+        ValidatorInterface::class => Validator::class,
     ];
 
     /**
@@ -274,8 +277,8 @@ final class Container
 
             // param is a class or interface (internal or userland)
             if (interface_exists($typeName) && ! $this->has($typeName)) {
-                $msg = "Constructor argument '$paramName' for class '$classFqcn' is type-hinted with the interface " .
-                    "'$typeName' but no alias for it is set in the container.";
+                $msg = "Constructor argument '$paramName' for class '$classFqcn' is declared with the interface " .
+                    "'$typeName' but no binding to a concrete implementation for it is set in the container.";
 
                 throw new \Exception($msg);
             }

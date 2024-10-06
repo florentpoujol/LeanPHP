@@ -35,6 +35,11 @@ interface ValidatorInterface
     public function validate(): self;
 
     /**
+     * @param array<string, mixed>|object $data an assoc array, or an object
+     */
+    public function setData(array|object $data): self;
+
+    /**
      * @return array<string, mixed>|object
      */
     public function getData(): array|object;

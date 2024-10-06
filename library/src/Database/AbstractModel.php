@@ -2,7 +2,6 @@
 
 namespace LeanPHP\Database;
 
-use LeanPHP\Container;
 use LeanPHP\EntityHydrator\EntityHydrator;
 use LeanPHP\EntityHydrator\EntityHydratorInterface;
 
@@ -57,6 +56,7 @@ abstract class AbstractModel
                 $value instanceof \DateTimeInterface => $value->format('Y-m-d H:i:s'),
                 $value instanceof \BackedEnum => $value->value,
                 $value instanceof \JsonSerializable => $value->jsonSerialize(), // does this even make sens ?
+                $value === null => null,
                 default => throw new \UnexpectedValueException("Can't transform object of type '" . get_debug_type($value) . "' to scalar for property/key '" . $this::class . "::$$key'."),
             };
         }
@@ -69,8 +69,7 @@ abstract class AbstractModel
      */
     public static function getQueryBuilder(): QueryBuilder
     {
-        return Container::getInstance()
-            ->get(QueryBuilder::class)
+        return QueryBuilder::make()
             ->hydrate(static::class);
     }
 }
