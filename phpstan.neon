@@ -33,4 +33,16 @@ parameters:
             message: '#Access to an undefined property LeanPHP\\Validation\\RuleEnum::\$value#'
             paths:
                 - library/src/Validation/Validator.php
-
+        -
+            message: '#Parameter \#1 \$ftp of function ftp_.+ expects FTP\\Connection, FTP\\Connection\|null given\.#'
+            paths:
+                - library/src/FileSystem/FtpFileSystem.php
+        -
+            message: '#Method LeanPHP\\FileSystem\\LocalFileSystem::.+ should return (string|int) but returns .+#'
+            paths:
+                - library/src/FileSystem/LocalFileSystem.php
+        -
+            # for some reason, PHPStan misread the PHPDoc on the directory property
+            message: '#Cannot access offset string on array<array<LeanPHP\\FileSystem\\FileInfo>|LeanPHP\\FileSystem\\FileInfo>|LeanPHP\\FileSystem\\FileInfo\.#'
+            paths:
+                - library/src/FileSystem/ArrayFileSystem.php
