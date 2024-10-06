@@ -19,6 +19,7 @@ services:
 
   frakenphp:
     image: dunglas/frankenphp
+    working_dir: /app
     volumes:
       - $PWD:/app
     ports:

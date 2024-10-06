@@ -33,8 +33,23 @@ $container->bind(LoggerInterface::class, ResourceLogger::class);
 
 // database
 $container->setFactory(\PDO::class, function (): \PDO {
+    $dsn = Environment::getStringOrThrow('DATABASE_DSN');
+
+    // Inside a docker container (with either Franken or nginx),
+    // using a relative path for the SQLite database doesn't work so we have to force an absolute path
+    // that works in all cases (Docker or not, CLI or the web)
+    if (
+        str_starts_with($dsn, 'sqlite')
+        && $dsn !== 'sqlite::memory:'
+    ) {
+        [, $path] = explode(':', $dsn);
+        if (!str_starts_with($path, '/')) {
+            $dsn = 'sqlite:' . dirname(__DIR__) . '/' . $path;
+        }
+    }
+
     return new \PDO(
-        Environment::getStringOrThrow('DATABASE_DSN'),
+        $dsn,
         Environment::getStringOrNull('DATABASE_USERNAME'),
         Environment::getStringOrNull('DATABASE_PASSWORD'),
         [
