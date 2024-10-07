@@ -4,8 +4,5 @@ namespace LeanPHP\Http;
 
 interface HttpMiddlewareInterface
 {
-    /**
-     * @param callable(ServerRequest): AbstractResponse $next
-     */
-    public function handle(ServerRequest $request, callable $next): AbstractResponse;
+    public function handle(ServerRequest $request, MiddlewareHandler $handler): AbstractResponse;
 }

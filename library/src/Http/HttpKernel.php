@@ -40,26 +40,11 @@ final class HttpKernel
         return $this->handleRequestThroughMiddleware($route, $serverRequest);
     }
 
-    public function handleRequestThroughMiddleware(Route $route, ServerRequest $serverRequest): AbstractResponse
+    private function handleRequestThroughMiddleware(Route $route, ServerRequest $serverRequest): AbstractResponse
     {
-        $middleware = $route->getMiddleware();
+        $handler = new MiddlewareHandler($route, $this->container, $this);
 
-        $handleNextMiddleware =
-        function (ServerRequest $serverRequest) use ($route, &$middleware, &$handleNextMiddleware): AbstractResponse
-        {
-            /** @var class-string<HttpMiddlewareInterface> $fqcn */
-            $fqcn = array_shift($middleware);
-            if ($fqcn === null) { // no more middleware
-                return $this->callRouteAction($route);
-            }
-
-            /** @var HttpMiddlewareInterface $instance */
-            $instance = $this->container->get($fqcn);
-
-            return $instance->handle($serverRequest, $handleNextMiddleware);
-        };
-
-        return $handleNextMiddleware($serverRequest);
+        return $handler->handle($serverRequest);
     }
 
     public function callRouteAction(Route $route): AbstractResponse

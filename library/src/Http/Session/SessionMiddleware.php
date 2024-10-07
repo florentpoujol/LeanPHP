@@ -4,6 +4,7 @@ namespace LeanPHP\Http\Session;
 
 use LeanPHP\Http\AbstractResponse;
 use LeanPHP\Http\HttpMiddlewareInterface;
+use LeanPHP\Http\MiddlewareHandler;
 use LeanPHP\Http\ServerRequest;
 
 final readonly class SessionMiddleware implements HttpMiddlewareInterface
@@ -15,16 +16,13 @@ final readonly class SessionMiddleware implements HttpMiddlewareInterface
     ) {
     }
 
-    /**
-     * @param callable(ServerRequest): AbstractResponse $next
-     */
-    public function handle(ServerRequest $request, callable $next): AbstractResponse
+    public function handle(ServerRequest $request, MiddlewareHandler $handler): AbstractResponse
     {
         $session = new Session();
 
         $sessionIsBuiltIn = $this->sessionRepository instanceof PhpBuiltInSessionRepository;
         if ($sessionIsBuiltIn) {
-            if (session_status() === PHP_SESSION_NONE) {
+            if (session_status() === \PHP_SESSION_NONE) {
                 session_start();
             }
             $sessionId = session_id();
@@ -40,7 +38,7 @@ final readonly class SessionMiddleware implements HttpMiddlewareInterface
 
         $request->setSession($session);
 
-        $response = $next($request);
+        $response = $handler->handle($request);
 
         $this->sessionRepository->save($session, $sessionId);
 

@@ -4,23 +4,21 @@ namespace LeanPHP\Http\Session;
 
 use LeanPHP\Http\AbstractResponse;
 use LeanPHP\Http\HttpMiddlewareInterface;
+use LeanPHP\Http\MiddlewareHandler;
 use LeanPHP\Http\RedirectResponse;
 use LeanPHP\Http\ServerRequest;
 
 final readonly class RedirectIfAuthenticatedMiddleware implements HttpMiddlewareInterface
 {
-    /**
-     * @param callable(ServerRequest): AbstractResponse $next
-     */
-    public function handle(ServerRequest $request, callable $next): AbstractResponse
+    public function handle(ServerRequest $request, MiddlewareHandler $handler): AbstractResponse
     {
         $session = $request->getSessionOrNull();
         if ($session === null) {
-            return $next($request);
+            return $handler->handle($request);
         }
 
         if ($session->getData('user_id') === null) {
-            return $next($request);
+            return $handler->handle($request);
         }
 
         return new RedirectResponse('/blog');

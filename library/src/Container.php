@@ -6,14 +6,12 @@ use LeanPHP\EntityHydrator\EntityHydrator;
 use LeanPHP\EntityHydrator\EntityHydratorInterface;
 use LeanPHP\Hasher\BuiltInPasswordHasher;
 use LeanPHP\Hasher\HasherInterface;
-use LeanPHP\Http\Psr15RequestHandler;
 use LeanPHP\Validation\Validator;
 use LeanPHP\Validation\ValidatorInterface;
 use Nyholm\Psr7\Request;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionNamedType;
 use ReflectionUnionType;
 
@@ -33,7 +31,6 @@ final class Container
         \DateTimeInterface::class => \DateTimeImmutable::class,
         HasherInterface::class => BuiltInPasswordHasher::class,
         ValidatorInterface::class => Validator::class,
-        RequestHandlerInterface::class => Psr15RequestHandler::class,
     ];
 
     /**

@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace LeanPHP\Http;
 
 use LeanPHP\Container;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
-final class Psr15RequestHandler implements RequestHandlerInterface
+/**
+ * This is basically a PSR15 middleware handler, but that handles LeanPHP objects
+ */
+final class MiddlewareHandler
 {
     /**
-     * @var array<class-string<MiddlewareInterface>>
+     * @var array<class-string<HttpMiddlewareInterface>>
      */
     private array $middleware;
 
@@ -22,22 +21,18 @@ final class Psr15RequestHandler implements RequestHandlerInterface
         private readonly Container $container,
         private readonly HttpKernel $httpKernel,
     ) {
-        $this->middleware = $route->getMiddleware(); // @phpstan-ignore-line
+        $this->middleware = $route->getMiddleware();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function handle(ServerRequestInterface $request): ResponseInterface
+    public function handle(ServerRequest $request): AbstractResponse
     {
-        /** @var class-string<MiddlewareInterface> $fqcn */
-        $fqcn = array_shift($this->middleware);
+        $middlewareFqcn = array_shift($this->middleware);
 
-        if ($fqcn !== null) {
-            /** @var MiddlewareInterface $instance */
-            $instance = $this->container->get($fqcn);
+        if ($middlewareFqcn !== null) {
+            /** @var HttpMiddlewareInterface $middlewareInstance */
+            $middlewareInstance = $this->container->get($middlewareFqcn);
 
-            return $instance->process($request, $this);
+            return $middlewareInstance->handle($request, $this);
 
             // The trick here is that we are passing this handler instance to all middleware.
             // So this method will be called multiple times, each time removing a middleware from the stack.
