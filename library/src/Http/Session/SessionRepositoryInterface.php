@@ -7,4 +7,6 @@ interface SessionRepositoryInterface
     public function get(string $id): Session;
 
     public function save(Session $session, null|string $oldId = null): void;
+
+    public function destroy(?Session $session): void;
 }

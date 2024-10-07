@@ -6,16 +6,16 @@ use LeanPHP\Identifiers\TimeBased16;
 
 final class Session
 {
-    private string $id;
-
-    /**
-     * @var array<string, mixed>
-     */
-    private array $data = [];
-
-    public function __construct()
-    {
-        $this->regenerateId();
+    public function __construct(
+        private string $id = '',
+        /**
+         * @var array<string, mixed>
+         */
+        private array $data = [],
+    ) {
+        if ($this->id === '') {
+            $this->regenerateId();
+        }
     }
 
     public function getId(): string
@@ -55,5 +55,20 @@ final class Session
         \assert(\is_array($previousData));
 
         $this->data[$key] = array_merge($previousData, $data);
+    }
+
+    private bool $isDestroyed = false;
+
+    public function isDestroyed(): bool
+    {
+        return $this->isDestroyed;
+    }
+
+    public function destroy(): void
+    {
+        $this->isDestroyed = true;
+
+        $this->regenerateId();
+        $this->data = [];
     }
 }

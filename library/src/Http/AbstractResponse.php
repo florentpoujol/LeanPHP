@@ -28,14 +28,25 @@ abstract class AbstractResponse implements ResponseInterface
         bool $httpOnly = true,
         bool $secure = true,
         string $sameSite = 'Strict',
+        string $other = '',
     ): void {
         $value = "$name=$value; SameSite=$sameSite;";
         $value .= $httpOnly ? ' HttpOnly;' : '';
         $value .= $secure ? ' Secure;' : '';
+        $value .= $other;
 
         $this->psrResponse = $this->psrResponse
             ->withAddedHeader('Set-Cookie', $value);
     }
+
+    public function deleteCookie(string $name): void
+    {
+        $value = "$name=a; Max-Age=1";
+
+        $this->psrResponse = $this->psrResponse
+            ->withAddedHeader('Set-Cookie', $value);
+    }
+
     // --------------------------------------------------
     // methods from the interface
 

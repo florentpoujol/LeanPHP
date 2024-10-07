@@ -31,6 +31,12 @@ final class PdoSessionRepository implements SessionRepositoryInterface
 
     public function save(Session $session, ?string $oldId = null): void
     {
+        if ($session->isDestroyed()) {
+            $this->destroy($session);
+
+            return;
+        }
+
         $this->queryBuilder
             ->reset()
             ->upsertSingle([
@@ -47,5 +53,18 @@ final class PdoSessionRepository implements SessionRepositoryInterface
         }
         // Note Florent: terminating the old session like may not always be a good idea.
         // Particularly in AJAX context, it may be more pertinent to let the old session live a few more seconds.
+    }
+
+    public function destroy(?Session $session): void
+    {
+        if ($session === null) {
+            return;
+        }
+
+        $this->queryBuilder
+            ->reset()
+            ->where('id', '=', $session->getId())
+            ->delete();
+        // Note Florent: this doesn't work because calling $session->destroy() changes the sessionId..
     }
 }

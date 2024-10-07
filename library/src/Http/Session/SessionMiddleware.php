@@ -23,22 +23,36 @@ final readonly class SessionMiddleware implements MiddlewareInterface
     {
         $request = Container::getInstance()->get(ServerRequest::class);
 
-        $sessionId = $request->getCookieOrNull(self::SESSION_COOKIE_NAME);
-
         $session = new Session();
-        if ($sessionId !== null) {
+
+        $sessionIsBuiltIn = $this->sessionRepository instanceof PhpBuiltInSessionRepository;
+        if ($sessionIsBuiltIn) {
+            session_start();
+            $sessionId = session_id();
+            \assert(\is_string($sessionId));
             $session = $this->sessionRepository->get($sessionId);
+        } else {
+            $sessionId = $request->getCookieOrNull(self::SESSION_COOKIE_NAME);
+
+            if ($sessionId !== null) {
+                $session = $this->sessionRepository->get($sessionId);
+            }
         }
 
         $request->setSession($session);
 
+        /** @var AbstractResponse $response */
         $response = $handler->handle($request->psrRequest);
 
-        // $session->regenerateId();
         $this->sessionRepository->save($session, $sessionId);
 
-        /** @var AbstractResponse $response */
-        $response->setCookie(self::SESSION_COOKIE_NAME, $session->getId());
+        if (! $sessionIsBuiltIn) {
+            if ($session->isDestroyed()) {
+                $response->deleteCookie(self::SESSION_COOKIE_NAME);
+            } else {
+                $response->setCookie(self::SESSION_COOKIE_NAME, $session->getId());
+            }
+        }
 
         return $response;
     }

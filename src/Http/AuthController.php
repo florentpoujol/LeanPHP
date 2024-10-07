@@ -60,7 +60,18 @@ final readonly class AuthController
         }
 
         $session->setData('user_id', $user->id);
+        $session->regenerateId();
 
-        return new RedirectResponse('/auth/login');
+        return new RedirectResponse('/');
+    }
+
+    /**
+     * Route: GET /auth/logout
+     */
+    public function logout(): RedirectResponse
+    {
+        $this->request->getSessionOrNull()?->destroy();
+
+        return new RedirectResponse('/');
     }
 }

@@ -5,3 +5,6 @@
 <p>query string 'the-query-string': <?= $queryString ?></p>
 
 <?php var_dump($queryArray); ?>
+
+User: <br>
+<?php var_dump($user); ?>
