@@ -59,8 +59,8 @@ final readonly class AuthController
             return new RedirectResponse('/auth/login');
         }
 
-        $session->setData('user_id', $user->id);
         $session->regenerateId();
+        $session->setData('user_id', $user->id);
 
         return new RedirectResponse('/');
     }

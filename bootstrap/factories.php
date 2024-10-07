@@ -2,8 +2,6 @@
 
 use LeanPHP\Container;
 use LeanPHP\Environment;
-use LeanPHP\Http\Session\PhpBuiltInSessionRepository;
-use LeanPHP\Http\Session\SessionRepositoryInterface;
 use LeanPHP\Logging\ResourceLogger;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\ServerRequest;
@@ -65,4 +63,4 @@ $container->setFactory(\PDO::class, function (): \PDO {
 // $container->setParameter('migrationTableName', 'my_custom_name');
 
 // $container->bind(SessionRepositoryInterface::class, PdoSessionRepository::class);c
-$container->bind(SessionRepositoryInterface::class, PhpBuiltInSessionRepository::class);
+// $container->bind(SessionRepositoryInterface::class, PhpBuiltInSessionRepository::class);

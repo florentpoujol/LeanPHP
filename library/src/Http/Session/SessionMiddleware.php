@@ -9,47 +9,14 @@ use LeanPHP\Http\ServerRequest;
 
 final readonly class SessionMiddleware implements HttpMiddlewareInterface
 {
-    private const SESSION_COOKIE_NAME = 'leanphp_session';
-
-    public function __construct(
-        private SessionRepositoryInterface $sessionRepository,
-    ) {
-    }
-
     public function handle(ServerRequest $request, MiddlewareHandler $handler): AbstractResponse
     {
-        $session = new Session();
-
-        $sessionIsBuiltIn = $this->sessionRepository instanceof PhpBuiltInSessionRepository;
-        if ($sessionIsBuiltIn) {
-            if (session_status() === \PHP_SESSION_NONE) {
-                session_start();
-            }
-            $sessionId = session_id();
-            \assert(\is_string($sessionId));
-            $session = $this->sessionRepository->get($sessionId);
-        } else {
-            $sessionId = $request->getCookieOrNull(self::SESSION_COOKIE_NAME);
-
-            if ($sessionId !== null) {
-                $session = $this->sessionRepository->get($sessionId);
-            }
+        if (session_status() === \PHP_SESSION_NONE) {
+            session_start();
         }
 
-        $request->setSession($session);
+        $request->setSession(new Session());
 
-        $response = $handler->handle($request);
-
-        $this->sessionRepository->save($session, $sessionId);
-
-        if (! $sessionIsBuiltIn) {
-            if ($session->isDestroyed()) {
-                $response->deleteCookie(self::SESSION_COOKIE_NAME);
-            } else {
-                $response->setCookie(self::SESSION_COOKIE_NAME, $session->getId());
-            }
-        }
-
-        return $response;
+        return $handler->handle($request);
     }
 }

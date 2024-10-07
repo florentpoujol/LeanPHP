@@ -444,13 +444,20 @@ final class QueryBuilder
     // --------------------------------------------------
     // delete
 
-    public function delete(): bool
+    /**
+     * @return int The number of affected rows
+     */
+    public function delete(): int
     {
         $this->action = self::ACTION_DELETE;
 
-        return $this->pdo
-            ->prepare($this->toSql())
-            ->execute($this->whereBindings);
+        $statement = $this->pdo->prepare($this->toSql());
+
+        if ($statement->execute($this->whereBindings)) {
+            return $statement->rowCount();
+        }
+
+        return 0;
     }
 
     // --------------------------------------------------

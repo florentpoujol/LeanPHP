@@ -8,6 +8,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 require_once __DIR__ . '/../bootstrap/init-container.php';
 
+require_once __DIR__ . '/../bootstrap/init-session.php';
+
 assert(isset($container) && $container instanceof Container);
 
 // note Florent 27/09/24: using FastRoute instead of the built-in slow/dumb router, but only if we do not care to insert the matched route object into the container.

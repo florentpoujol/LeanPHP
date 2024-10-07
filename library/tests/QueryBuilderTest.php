@@ -221,13 +221,13 @@ final class QueryBuilderTest extends TestCase
 
         // act
         $qb = new QueryBuilder($this->pdo);
-        $success = $qb
+        $deletedRowCount = $qb
             ->fromTable('test')
             ->where('email', '=', 'flo@flo3.fr')
             ->delete();
 
         // assert
-        self::assertTrue($success);
+        self::assertSame(1, $deletedRowCount);
 
         $expected = 'DELETE FROM `test` WHERE `email` = ? ';
         self::assertSame($expected, $qb->toSql());

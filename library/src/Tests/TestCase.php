@@ -3,7 +3,6 @@
 namespace LeanPHP\Tests;
 
 use LeanPHP\Container;
-use LeanPHP\Database\QueryBuilder;
 use LeanPHP\EntityHydrator\EntityHydratorInterface;
 use LeanPHP\Http\HttpKernel;
 use LeanPHP\Http\ServerRequest;
@@ -24,6 +23,8 @@ abstract class TestCase extends PHPUnitTestCase
     protected function initContainer(): void
     {
         require BASE_APP_PATH . '/bootstrap/init-container.php';
+
+        require BASE_APP_PATH . '/bootstrap/init-session.php';
 
         \assert(isset($container) && $container instanceof Container);
 
