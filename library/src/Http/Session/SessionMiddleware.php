@@ -2,15 +2,11 @@
 
 namespace LeanPHP\Http\Session;
 
-use LeanPHP\Container;
 use LeanPHP\Http\AbstractResponse;
+use LeanPHP\Http\HttpMiddlewareInterface;
 use LeanPHP\Http\ServerRequest;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
-final readonly class SessionMiddleware implements MiddlewareInterface
+final readonly class SessionMiddleware implements HttpMiddlewareInterface
 {
     private const SESSION_COOKIE_NAME = 'leanphp_session';
 
@@ -19,15 +15,18 @@ final readonly class SessionMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(ServerRequestInterface $psrRequest, RequestHandlerInterface $handler): ResponseInterface
+    /**
+     * @param callable(ServerRequest): AbstractResponse $next
+     */
+    public function handle(ServerRequest $request, callable $next): AbstractResponse
     {
-        $request = Container::getInstance()->get(ServerRequest::class);
-
         $session = new Session();
 
         $sessionIsBuiltIn = $this->sessionRepository instanceof PhpBuiltInSessionRepository;
         if ($sessionIsBuiltIn) {
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
             $sessionId = session_id();
             \assert(\is_string($sessionId));
             $session = $this->sessionRepository->get($sessionId);
@@ -41,8 +40,7 @@ final readonly class SessionMiddleware implements MiddlewareInterface
 
         $request->setSession($session);
 
-        /** @var AbstractResponse $response */
-        $response = $handler->handle($request->psrRequest);
+        $response = $next($request);
 
         $this->sessionRepository->save($session, $sessionId);
 

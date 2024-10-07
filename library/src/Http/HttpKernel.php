@@ -3,10 +3,6 @@
 namespace LeanPHP\Http;
 
 use LeanPHP\Container;
-use Nyholm\Psr7\Response;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
 final class HttpKernel
 {
@@ -19,7 +15,7 @@ final class HttpKernel
     /**
      * @param array<Route> $routes
      */
-    public function handle(array $routes, ServerRequest $serverRequest): ResponseInterface
+    public function handle(array $routes, ServerRequest $serverRequest): AbstractResponse
     {
         $router = new Router($routes);
         $route = $router->resolveRoute($serverRequest->getMethod(), $serverRequest->getUri()->getPath());
@@ -41,20 +37,32 @@ final class HttpKernel
             return new Response($status, ['Location' => $location]);
         }
 
-        // if ($route->hasPsr15Middleware()) {
-            return $this->handleRequestThroughPsr15Middleware();
+        return $this->handleRequestThroughMiddleware($route, $serverRequest);
     }
 
-    public function handleRequestThroughPsr15Middleware(): ResponseInterface
+    public function handleRequestThroughMiddleware(Route $route, ServerRequest $serverRequest): AbstractResponse
     {
-        $handler = $this->container->get(RequestHandlerInterface::class);
+        $middleware = $route->getMiddleware();
 
-        $serverRequest = $this->container->get(ServerRequestInterface::class);
+        $handleNextMiddleware =
+        function (ServerRequest $serverRequest) use ($route, &$middleware, &$handleNextMiddleware): AbstractResponse
+        {
+            /** @var class-string<HttpMiddlewareInterface> $fqcn */
+            $fqcn = array_shift($middleware);
+            if ($fqcn === null) { // no more middleware
+                return $this->callRouteAction($route);
+            }
 
-        return $handler->handle($serverRequest); // see in the handle method for explanation as to why this single line does everything and return the final response, whatever happens in between
+            /** @var HttpMiddlewareInterface $instance */
+            $instance = $this->container->get($fqcn);
+
+            return $instance->handle($serverRequest, $handleNextMiddleware);
+        };
+
+        return $handleNextMiddleware($serverRequest);
     }
 
-    public function callRouteAction(Route $route): ResponseInterface
+    public function callRouteAction(Route $route): AbstractResponse
     {
         /** @var callable|string $action A callable or an "at" string : "Controller@method" */
         $action = $route->getAction();
@@ -72,7 +80,7 @@ final class HttpKernel
         );
     }
 
-    public function sendResponse(ResponseInterface $response): void
+    public function sendResponse(AbstractResponse $response): void
     {
         http_response_code($response->getStatusCode());
 

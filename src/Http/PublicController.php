@@ -3,9 +3,9 @@
 namespace App\Http;
 
 use App\Entities\User;
+use LeanPHP\Http\Response;
 use LeanPHP\Http\ServerRequest;
 use LeanPHP\PhpViewRenderer;
-use Nyholm\Psr7\Response;
 
 final readonly class PublicController
 {

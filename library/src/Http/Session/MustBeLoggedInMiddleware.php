@@ -3,20 +3,18 @@
 namespace LeanPHP\Http\Session;
 
 use App\Entities\User;
-use LeanPHP\Container;
+use LeanPHP\Http\AbstractResponse;
+use LeanPHP\Http\HttpMiddlewareInterface;
+use LeanPHP\Http\Response;
 use LeanPHP\Http\ServerRequest;
-use Nyholm\Psr7\Response;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
-final readonly class MustBeLoggedIn implements MiddlewareInterface
+final readonly class MustBeLoggedInMiddleware implements HttpMiddlewareInterface
 {
-    public function process(ServerRequestInterface $psrRequest, RequestHandlerInterface $handler): ResponseInterface
+    /**
+     * @param callable(ServerRequest): AbstractResponse $next
+     */
+    public function handle(ServerRequest $request, callable $next): AbstractResponse
     {
-        $request = Container::getInstance()->get(ServerRequest::class);
-
         $session = $request->getSessionOrNull();
         $userId = $session?->getData('user_id');
 
@@ -33,6 +31,6 @@ final readonly class MustBeLoggedIn implements MiddlewareInterface
 
         // save the user in the request object or the container ?
 
-        return $handler->handle($psrRequest);
+        return $next($request);
     }
 }

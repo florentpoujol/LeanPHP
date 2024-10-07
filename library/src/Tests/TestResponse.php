@@ -2,13 +2,13 @@
 
 namespace LeanPHP\Tests;
 
+use LeanPHP\Http\AbstractResponse;
 use PHPUnit\Framework\Assert;
-use Psr\Http\Message\ResponseInterface;
 
 final readonly class TestResponse
 {
     public function __construct(
-        public ResponseInterface $response,
+        public AbstractResponse $response,
     ) {
     }
 

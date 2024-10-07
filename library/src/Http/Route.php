@@ -2,8 +2,6 @@
 
 namespace LeanPHP\Http;
 
-use Psr\Http\Server\MiddlewareInterface;
-
 final class Route
 {
     /**
@@ -152,14 +150,14 @@ final class Route
     // middleware stuffs
 
     /**
-     * @var array<callable|string|class-string<MiddlewareInterface>>
+     * @var array<class-string<HttpMiddlewareInterface>>
      */
     private array $middleware = [];
 
     /**
      * Add one **or several** middleware.
      *
-     * @param array<callable|string|class-string<MiddlewareInterface>> $middleware
+     * @param array<class-string<HttpMiddlewareInterface>> $middleware
      */
     public function setMiddleware(array $middleware): self
     {
@@ -169,21 +167,20 @@ final class Route
     }
 
     /**
-     * @return array<callable|string|class-string<MiddlewareInterface>>
+     * @param class-string<HttpMiddlewareInterface> $fqcn
+     */
+    public function addMiddleware(string $fqcn): self
+    {
+        $this->middleware[] = $fqcn;
+
+        return $this;
+    }
+
+    /**
+     * @return array<class-string<HttpMiddlewareInterface>>
      */
     public function getMiddleware(): array
     {
         return $this->middleware;
-    }
-
-    public function hasPsr15Middleware(): bool
-    {
-        $mid = $this->middleware[0] ?? null;
-
-        return
-            \is_string($mid)
-            && class_exists($mid)
-            && \is_array($interfaces = class_implements($mid))
-            && \in_array(MiddlewareInterface::class, $interfaces, true);
     }
 }
