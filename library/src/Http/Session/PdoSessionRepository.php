@@ -31,17 +31,17 @@ final class PdoSessionRepository implements SessionRepositoryInterface
 
     public function save(Session $session, ?string $oldId = null): void
     {
-        if ($session->isDestroyed()) {
-            $this->destroy($session);
-
-            return;
-        }
+        // if ($session->isDestroyed()) {
+        //     $this->destroy($session);
+        //
+        //     return;
+        // }
 
         $this->queryBuilder
             ->reset()
             ->upsertSingle([
                 'id' => $session->getId(),
-                'data' => json_encode($session->getAllData()),
+                // 'data' => json_encode($session->getAllData()),
                 'updated_at' => date('Y-m-d H:i:s'),
             ], ['id']);
 

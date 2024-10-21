@@ -16,11 +16,11 @@ final class ArraySessionRepository implements SessionRepositoryInterface
 
     public function save(Session $session, ?string $oldId = null): void
     {
-        if ($session->isDestroyed()) {
-            $this->destroy($session);
-
-            return;
-        }
+        // if ($session->isDestroyed()) {
+        //     $this->destroy($session);
+        //
+        //     return;
+        // }
 
         if ($oldId !== null) {
             unset($this->sessionsById[$oldId]);

@@ -10,24 +10,24 @@ final class PhpBuiltInSessionRepository implements SessionRepositoryInterface
     public function get(string $id): Session
     {
         return new Session(
-            $id,
-            $_SESSION,
+            // $id,
+            // $_SESSION,
         );
     }
 
     public function save(Session $session, ?string $oldId = null): void
     {
-        if ($session->isDestroyed()) {
-            $this->destroy($session);
-
-            return;
-        }
+        // if ($session->isDestroyed()) {
+        //     $this->destroy($session);
+        //
+        //     return;
+        // }
 
         if (session_id() !== $session->getId()) {
             session_regenerate_id(true);
         }
 
-        $_SESSION = $session->getAllData();
+        // $_SESSION = $session->getAllData();
     }
 
     public function destroy(?Session $session): void
