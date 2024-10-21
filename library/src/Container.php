@@ -29,7 +29,6 @@ final class Container
         ResponseInterface::class => Response::class,
         RequestInterface::class => Request::class, // client request
         \DateTimeInterface::class => \DateTimeImmutable::class,
-        HasherInterface::class => BuiltInPasswordHasher::class,
         ValidatorInterface::class => Validator::class,
     ];
 
@@ -37,6 +36,7 @@ final class Container
      * @var array<class-string<ServiceType>, (callable(): ServiceType)|class-string<ServiceType>>
      */
     private array $singletonBindings = [
+        HasherInterface::class => BuiltInPasswordHasher::class,
         EntityHydratorInterface::class => EntityHydrator::class,
     ];
 

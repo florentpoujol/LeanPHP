@@ -220,14 +220,31 @@ final class Validator implements ValidatorInterface
     }
 
     /**
+     * @param class-string<object> $fqcn
+     *
+     * @return array<string, array<string|callable|RuleEnum|RuleInterface>>
+     */
+    public function getRulesForClassProperties(string $fqcn): array
+    {
+        $this->introspectPropertyRules($fqcn);
+
+        return $this->rules;
+    }
+
+    /**
      * When the validated data is an object and no validation rules are passed to the validator,
      * find them via the Validates attributes on the object's properties.
+     *
+     * @param null|class-string $fqcn
      */
-    private function introspectPropertyRules(): void
+    private function introspectPropertyRules(?string $fqcn = null): void
     {
-        \assert($this->objectData !== null);
+        if ($fqcn === null) {
+            \assert($this->objectData !== null);
+            $fqcn = $this->objectData::class;
+        }
 
-        $reflectionProperties = (new ReflectionClass($this->objectData))->getProperties();
+        $reflectionProperties = (new ReflectionClass($fqcn))->getProperties();
         foreach ($reflectionProperties as $reflectionProperty) {
             foreach ($reflectionProperty->getAttributes() as $reflectionAttribute) {
                 if ($reflectionAttribute->getName() !== Validates::class) {
@@ -257,7 +274,6 @@ final class Validator implements ValidatorInterface
                     if ($type->allowsNull()) {
                         if (\in_array(Rule::notNull->value, $rules, true)) {
                             $name = $reflectionProperty->getName();
-                            $fqcn = $this->objectData::class;
 
                             throw new LogicException("Property '$name' on instance of '$fqcn', can't be both typed-nullable and has the 'not-null' validation rule.");
                         }
@@ -268,7 +284,6 @@ final class Validator implements ValidatorInterface
                     } else {
                         if (\in_array(Rule::optional->value, $rules, true)) {
                             $name = $reflectionProperty->getName();
-                            $fqcn = $this->objectData::class;
 
                             throw new LogicException("Property '$name' on instance of '$fqcn', can't be both non-nullable and has the 'optional' validation rule.");
                         }

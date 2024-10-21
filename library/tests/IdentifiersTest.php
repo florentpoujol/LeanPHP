@@ -102,7 +102,7 @@ final class IdentifiersTest extends TestCase
     {
         $id = TimeBased8::make();
 
-        self::assertSame(16, \strlen($id->getHex()));
+        self::assertSame(16, \strlen($id->getHex()), "hex: '" . $id->getHex() . "' bin:'" . $id->getRaw() . "'");
         self::assertTrue($id->getInteger() > microtime(true) * 100_000_000);
 
         $id2 = TimeBased8::fromString($id->getHex());

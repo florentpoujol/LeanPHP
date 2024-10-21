@@ -9,7 +9,7 @@ use LeanPHP\Http\RedirectResponse;
 use LeanPHP\Http\Response;
 use LeanPHP\Http\ServerRequest;
 use LeanPHP\PhpViewRenderer;
-use LeanPHP\Validation\ValidatorInterface;
+use LeanPHP\Validation\ServerRequestEntityValidator;
 
 final readonly class AuthController
 {
@@ -17,17 +17,16 @@ final readonly class AuthController
         private PhpViewRenderer $viewRenderer,
         private ServerRequest $request,
         private HasherInterface $hasher,
-        private ValidatorInterface $validator,
     ) {
     }
 
     /**
      * Route: GET /auth/login
      */
-    public function showLoginForm(): Response
+    public function showLoginForm(LoginFormData $form): Response
     {
         $html = $this->viewRenderer->render('login', [
-            //
+            'form' => $form,
         ]);
 
         return new Response(body: $html);
@@ -36,24 +35,26 @@ final readonly class AuthController
     /**
      * Route: POST /auth/login
      */
-    public function login(): RedirectResponse
+    public function login(ServerRequestEntityValidator $validator, LoginForm $form): RedirectResponse
     {
-        $session = $this->request->getSessionOrThrow();
-
-        $loginForm = $this->request->hydrateBodyAsOne(LoginFormData::class);
-
-        if (! $this->validator->setData($loginForm)->isValid()) {
-            $session->setData('validation_errors', $this->validator->getMessages());
-
+        $validator->setEntityFqcn(LoginFormData::class);
+        if (! $validator->validate()) {
             return new RedirectResponse('/auth/login');
         }
 
+        /** @var LoginFormData $formEntity */
+        $formEntity = $validator->getValidatedEntity();
+
+        $form->getEntity();
+
         /** @var null|User $user */
         $user = User::getQueryBuilder()
-            ->where('email', '=', $loginForm->email)
+            ->where('email', '=', $formEntity->email)
             ->selectSingle();
 
-        if ($user === null || !$this->hasher->verify($loginForm->password, $user->password)) {
+        $session = $this->request->getSessionOrThrow();
+
+        if ($user === null || !$this->hasher->verify($formEntity->password, $user->password)) {
             $session->setData('validation_errors', ['wrong email or password']);
 
             return new RedirectResponse('/auth/login');

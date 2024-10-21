@@ -51,4 +51,7 @@ parameters:
             message: '#Method LeanPHP\\Http\\AbstractResponse::.+ should return static\(LeanPHP\\Http\\AbstractResponse\) but returns Psr\\Http\\Message\\ResponseInterface\.#'
             paths:
                 - library/src/Http/AbstractResponse.php
-
+        -
+            message: '#Variable (property access|method call) on object\.#'
+            paths:
+                - library/src/AbstractProxy.php
