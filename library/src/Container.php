@@ -247,8 +247,19 @@ final class Container
 
             if ($typeName === null || $typeIsBuiltin) {
                 // no type hint or not an object, so try to get a value from the parameters
-                $hasParameter = isset($this->parameters[$classFqcn . $paramName]) || isset($this->parameters[$paramName]);
-                $value = $this->parameters[$classFqcn . $paramName] ?? $this->parameters[$paramName] ?? null;
+
+                // check first if there is an AutowireParameter() attribute to get the paramName from
+                $attribute = $reflectionParameter->getAttributes(AutowireParameter::class)[0] ?? null;
+                $paramNameFromAttribute = $attribute?->getArguments()[0];
+
+                if (\is_string($paramNameFromAttribute)) {
+                    $hasParameter = isset($this->parameters[$paramName]);
+                    $value = $this->parameters[$paramName] ?? null;
+                } else {
+                    // there was no attribute, so use the parameter name, and try it scoped
+                    $hasParameter = isset($this->parameters[$classFqcn . $paramName]) || isset($this->parameters[$paramName]);
+                    $value = $this->parameters[$classFqcn . $paramName] ?? $this->parameters[$paramName] ?? null;
+                }
 
                 if ($hasParameter && $value === null && ! $typeIsNullable) {
                     throw new \Exception("Constructor argument '$paramName' for class '$classFqcn' is not nullable but a null value was specified through parameters");
