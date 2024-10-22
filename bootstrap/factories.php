@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use LeanPHP\Container;
+use LeanPHP\Container\Container;
 use LeanPHP\Environment;
 use LeanPHP\Logging\ResourceLogger;
 use Nyholm\Psr7\Factory\Psr17Factory;

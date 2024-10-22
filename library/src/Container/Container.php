@@ -1,9 +1,7 @@
 <?php declare(strict_types=1);
 
-namespace LeanPHP;
+namespace LeanPHP\Container;
 
-use LeanPHP\Container\AutowireParameter;
-use LeanPHP\Container\ContainerException;
 use LeanPHP\EntityHydrator\EntityHydrator;
 use LeanPHP\EntityHydrator\EntityHydratorInterface;
 use LeanPHP\Hasher\BuiltInPasswordHasher;

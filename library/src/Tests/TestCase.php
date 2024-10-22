@@ -2,7 +2,7 @@
 
 namespace LeanPHP\Tests;
 
-use LeanPHP\Container;
+use LeanPHP\Container\Container;
 use LeanPHP\EntityHydrator\EntityHydratorInterface;
 use LeanPHP\Http\HttpKernel;
 use LeanPHP\Http\ServerRequest;

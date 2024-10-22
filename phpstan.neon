@@ -17,14 +17,14 @@ parameters:
         - tests
 
     ignoreErrors:
-        - '#.+with generic class LeanPHP\\Container (but )?does not specify its types: ServiceType#' # needed until we figure out the genericity in the Container
+        - '#.+with generic class LeanPHP\\Container\\Container (but )?does not specify its types: ServiceType#' # needed until we figure out the genericity in the Container
         - '#Parameter \#(1|3) \$(level|context) .*of method .+::log\(\) should be contravariant with parameter \$(level|context) \((mixed|array)\) of method Psr\\Log\\.+::log\(\)#' # library logging
         - '#Parameter \#1 \$level of method .+::handleLevel\(\) expects .*, string given\.#' # library logging
         - '#Method .+QueryBuilder.+ return type with generic class LeanPHP\\Database\\QueryBuilder does not specify its types: HydratedEntityType#'
         -
             message: '#Cannot cast array\|bool\|float\|int\|object\|string\|null to #'
             paths:
-                - library/src/Container.php
+                - library/src/Container/Container.php
                 - library/src/ConfigRepository.php
         -
             message: '#Cannot access offset .+ on mixed\.#'

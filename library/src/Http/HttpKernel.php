@@ -2,7 +2,7 @@
 
 namespace LeanPHP\Http;
 
-use LeanPHP\Container;
+use LeanPHP\Container\Container;
 
 final class HttpKernel
 {

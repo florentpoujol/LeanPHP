@@ -9,13 +9,13 @@
 
 declare(strict_types=1);
 
-use LeanPHP\Container;
+use LeanPHP\Container\Container;
 use LeanPHP\Environment;
+use Psr\Log\LoggerInterface;
 use Whoops\Handler\CallbackHandler;
 use Whoops\Handler\PlainTextHandler;
 use Whoops\Handler\PrettyPageHandler;
 use Whoops\Run;
-use Psr\Log\LoggerInterface;
 
 require_once __DIR__ . '/constants.php';
 

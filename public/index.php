@@ -1,6 +1,6 @@
 <?php
 
-use LeanPHP\Container;
+use LeanPHP\Container\Container;
 use LeanPHP\Http\HttpKernel;
 use LeanPHP\Http\ServerRequest;
 

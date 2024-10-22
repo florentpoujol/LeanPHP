@@ -2,7 +2,7 @@
 
 namespace LeanPHP\EntityHydrator;
 
-use LeanPHP\Container;
+use LeanPHP\Container\Container;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionProperty;

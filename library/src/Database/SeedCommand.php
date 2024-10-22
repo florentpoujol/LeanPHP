@@ -4,7 +4,7 @@ namespace LeanPHP\Database;
 
 use LeanPHP\Console\InputOutput\AbstractInput;
 use LeanPHP\Console\InputOutput\AbstractOutput;
-use LeanPHP\Container;
+use LeanPHP\Container\Container;
 
 final readonly class SeedCommand
 {

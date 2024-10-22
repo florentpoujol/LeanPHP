@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LeanPHP\Http;
 
-use LeanPHP\Container;
+use LeanPHP\Container\Container;
 
 /**
  * This is basically a PSR15 middleware handler, but that handles LeanPHP objects

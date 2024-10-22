@@ -3,7 +3,7 @@
 
 use LeanPHP\Console\InputOutput\ArgvInput;
 use LeanPHP\Console\InputOutput\EchoOutput;
-use LeanPHP\Container;
+use LeanPHP\Container\Container;
 use LeanPHP\Database\SeedCommand;
 
 require_once __DIR__ . '/../vendor/autoload.php';

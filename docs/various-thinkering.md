@@ -217,7 +217,7 @@ For running commands like the migrations, the seeders > or provide that with the
 ## TODO
 
 - ConfigRepository : add dotted key support
-- Container: autowire parameter that have a different name with an attribute
+- Container: move the parameter stuff into its separate Parameter store, automatically fill the store with data comming from a config folder
 - PhpViewRenderer: add layouts, easy escaping
 - seeder command: allow to have files in env-named folder ?
 - entity hydrator: make it recursive, have a default interface>implementation for common data interfaces like DateTimeInterface, allow to call the constructor ?

@@ -2,7 +2,7 @@
 
 namespace Tests\LeanPHP;
 
-use LeanPHP\Container;
+use LeanPHP\Container\Container;
 use LeanPHP\EntityHydrator\DataToPropertyMap;
 use LeanPHP\EntityHydrator\EntityHydrator;
 use PHPUnit\Framework\TestCase;

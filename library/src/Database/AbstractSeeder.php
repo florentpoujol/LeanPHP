@@ -2,7 +2,7 @@
 
 namespace LeanPHP\Database;
 
-use LeanPHP\Container;
+use LeanPHP\Container\Container;
 
 abstract class AbstractSeeder
 {
