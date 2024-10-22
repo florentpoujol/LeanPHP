@@ -218,7 +218,8 @@ final class Container
                         \assert(class_exists($value));
                         $value = $this->get($value);
                     } elseif ($value[0] === '%') { // parameter reference
-                        $value = $this->parameters[str_replace('%', '', $value)];
+                        $paramAlias = str_replace('%', '', $value);
+                        $value = $this->parameters[$classFqcn . $paramAlias] ?? $this->parameters[$paramAlias];
                     }
                 }
 
@@ -246,8 +247,8 @@ final class Container
 
             if ($typeName === null || $typeIsBuiltin) {
                 // no type hint or not an object, so try to get a value from the parameters
-                $hasParameter = isset($this->parameters[$paramName]);
-                $value = $this->parameters[$paramName] ?? null;
+                $hasParameter = isset($this->parameters[$classFqcn . $paramName]) || isset($this->parameters[$paramName]);
+                $value = $this->parameters[$classFqcn . $paramName] ?? $this->parameters[$paramName] ?? null;
 
                 if ($hasParameter && $value === null && ! $typeIsNullable) {
                     throw new \Exception("Constructor argument '$paramName' for class '$classFqcn' is not nullable but a null value was specified through parameters");
@@ -319,22 +320,22 @@ final class Container
     /**
      * @param bool|int|float|string|array<mixed>|object|null $value
      */
-    public function setParameter(string $name, null|bool|int|float|string|array|object $value): void
+    public function setParameter(string $name, null|bool|int|float|string|array|object $value, string $scope = ''): void
     {
-        $this->parameters[$name] = $value;
+        $this->parameters["$scope$name"] = $value;
     }
 
     /**
      * @return bool|int|float|string|array<mixed>|object|null
      */
-    public function getParameter(string $name): null|bool|int|float|string|array|object
+    public function getParameter(string $name, string $scope = ''): null|bool|int|float|string|array|object
     {
-        return $this->parameters[$name] ?? null;
+        return $this->parameters["$scope$name"] ?? null;
     }
 
-    public function hasParameter(string $name): bool
+    public function hasParameter(string $name, string $scope = ''): bool
     {
-        return isset($this->parameters[$name]);
+        return isset($this->parameters["$scope$name"]);
     }
 
     public function getStringParameterOrThrow(string $name): string
