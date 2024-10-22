@@ -2,6 +2,8 @@
 
 namespace LeanPHP;
 
+use LeanPHP\Container\AutowireParameter;
+use LeanPHP\Container\ContainerException;
 use LeanPHP\EntityHydrator\EntityHydrator;
 use LeanPHP\EntityHydrator\EntityHydratorInterface;
 use LeanPHP\Hasher\BuiltInPasswordHasher;
@@ -131,7 +133,7 @@ final class Container
 
         $concrete = $this->make($id); // @phpstan-ignore-line
         if ($concrete === null) {
-            throw new \Exception("Service '$id' couldn't be resolved", 1);
+            throw new ContainerException("Service '$id' couldn't be resolved", 1);
         }
 
         if (isset($this->singletonBindings[$id])) {
@@ -159,7 +161,7 @@ final class Container
                 return $this->createObject($id, $extraArguments);
             }
 
-            throw new \Exception("Factory or concrete class FQCN for abstract '$id' not found.");
+            throw new ContainerException("Factory or concrete class FQCN for abstract '$id' not found.");
         }
 
         $bindings = array_merge($this->singletonBindings, $this->bindings);
@@ -186,7 +188,7 @@ final class Container
             return $this->createObject($value, $extraArguments);
         }
 
-        throw new \Exception("Service '$id' resolve to a string value '$value' that is neither another known service nor a class name.");
+        throw new ContainerException("Service '$id' resolve to a string value '$value' that is neither another known service nor a class name.");
     }
 
     /**
@@ -236,7 +238,7 @@ final class Container
             $reflectionType = $reflectionParameter->getType();
 
             if ($reflectionType instanceof ReflectionUnionType) {
-                throw new \Exception("Can't autowire argument '$paramName' of service '$classFqcn' because it has union type.");
+                throw new ContainerException("Can't autowire argument '$paramName' of service '$classFqcn' because it has union type.");
             }
 
             if ($reflectionType instanceof ReflectionNamedType) {
@@ -262,17 +264,17 @@ final class Container
                 }
 
                 if ($hasParameter && $value === null && ! $typeIsNullable) {
-                    throw new \Exception("Constructor argument '$paramName' for class '$classFqcn' is not nullable but a null value was specified through parameters");
+                    throw new ContainerException("Constructor argument '$paramName' for class '$classFqcn' is not nullable but a null value was specified through parameters");
                 }
 
                 // TODO check unresolvable type mismatch between the parameter value and the argument type
-                //  Or try to cast ? if type mistmatch but castable to one another and the file has strict_types=1 we will get a TypeError
+                //  Or try to cast ? if type mistmatch but castable to one another and the file has strict_types=1 we will get a TypeError (todo check)
 
                 if (! $hasParameter && $paramIsMandatory) {
                     $message = "Constructor argument '$paramName' for class '$classFqcn' has no type-hint or is of built-in" .
                         " type '$typeName' but value is not manually specified in the container or the extra arguments.";
 
-                    throw new \Exception($message);
+                    throw new ContainerException($message);
                 }
 
                 if (! $hasParameter) {
@@ -292,7 +294,7 @@ final class Container
                 $msg = "Constructor argument '$paramName' for class '$classFqcn' is declared with the interface " .
                     "'$typeName' but no binding to a concrete implementation for it is set in the container.";
 
-                throw new \Exception($msg);
+                throw new ContainerException($msg);
             }
 
             $instance = null;
@@ -307,7 +309,7 @@ final class Container
                     $msg = "Constructor argument '$paramName' for class '$classFqcn' has type '$typeName' " .
                         " but the container don't know how to resolve it.";
 
-                    throw new \Exception($msg);
+                    throw new ContainerException($msg);
                 }
 
                 // other exception in the factories, that must be propagated
