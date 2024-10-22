@@ -6,11 +6,11 @@ namespace LeanPHP\Validation;
 
 use LeanPHP\Http\ServerRequest;
 
-final readonly class ServerRequestValidator
+final class ServerRequestValidator
 {
     public function __construct(
-        private ServerRequest $request,
-        public Validator $validator,
+        private readonly ServerRequest $request,
+        public readonly Validator $validator,
     ) {
     }
 
@@ -37,10 +37,45 @@ final readonly class ServerRequestValidator
 
     //--------------------------------------------------
 
+    /**
+     * @var null|class-string<object>
+     */
+    private ?string $entityFqcn = null;
+
+    private object $entity;
+
+    /**
+     * @param class-string<object> $entityFqcn
+     */
+    public function setEntityFqcn(string $entityFqcn): self
+    {
+        $this->entityFqcn = $entityFqcn;
+
+        return $this;
+    }
+
+    public function getValidatedEntity(): object
+    {
+        if ($this->validator->isValid()) {
+            return $this->entity;
+        }
+
+        throw new \LogicException("can't access the entity if not validated");
+    }
+
+    //--------------------------------------------------
+
     public function validate(): bool
     {
+        if ($this->entityFqcn !== null) {
+            $data = $this->request->hydrateBodyAsOne($this->entityFqcn);
+            $this->entity = $data;
+        } else {
+            $data = $this->request->getBodyAsArray();
+        }
+
         $this->validator
-            ->setData($this->request->getBodyAsArray())
+            ->setData($data)
             ->validate();
 
         if ($this->validator->isValid()) {

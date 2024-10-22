@@ -9,7 +9,8 @@ use LeanPHP\Http\RedirectResponse;
 use LeanPHP\Http\Response;
 use LeanPHP\Http\ServerRequest;
 use LeanPHP\PhpViewRenderer;
-use LeanPHP\Validation\ServerRequestEntityValidator;
+use LeanPHP\Validation\FormHtmlValidationBuilder;
+use LeanPHP\Validation\ServerRequestValidator;
 
 final readonly class AuthController
 {
@@ -17,7 +18,7 @@ final readonly class AuthController
         private PhpViewRenderer $viewRenderer,
         private ServerRequest $request,
         private HasherInterface $hasher,
-        private LoginForm $loginForm,
+        private FormHtmlValidationBuilder $formValidationBuilder,
     ) {
     }
 
@@ -26,8 +27,10 @@ final readonly class AuthController
      */
     public function showLoginForm(): Response
     {
+        $this->formValidationBuilder->setEntityFqcn(LoginFormData::class);
+
         $html = $this->viewRenderer->render('login', [
-            'form' => $this->loginForm,
+            'formBuilder' => $this->formValidationBuilder,
         ]);
 
         return new Response(body: $html);
@@ -35,18 +38,19 @@ final readonly class AuthController
 
     /**
      * Route: POST /auth/login
+     *
      */
-    public function login(ServerRequestEntityValidator $validator): RedirectResponse
+    public function login(ServerRequestValidator $validator): RedirectResponse
     {
         $validator->setEntityFqcn(LoginFormData::class);
+
+        // $validator->validatorOrThrow();
         if (! $validator->validate()) {
             return new RedirectResponse('/auth/login');
         }
 
         /** @var LoginFormData $formEntity */
         $formEntity = $validator->getValidatedEntity();
-
-        // $formEntity = $form->getEntity();
 
         /** @var null|User $user */
         $user = User::getQueryBuilder()

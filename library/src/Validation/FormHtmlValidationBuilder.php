@@ -2,23 +2,39 @@
 
 declare(strict_types=1);
 
-namespace LeanPHP\Validation\Form;
+namespace LeanPHP\Validation;
 
-use LeanPHP\Validation\Rule;
-use LeanPHP\Validation\RuleEnum;
-use LeanPHP\Validation\RuleInterface;
-
-abstract class FormValidator
+final class FormHtmlValidationBuilder
 {
-    /**
-     * @return array<string, array<string|callable|RuleEnum|RuleInterface>>
-     */
-    abstract protected function getRules(): array;
+    public function __construct(
+        private readonly Validator $validator,
+    ) {
+    }
 
     /**
      * @var array<string, array<string|callable|RuleEnum|RuleInterface>>
      */
     private array $rules = [];
+
+    /**
+     * @param array<string, array<string|callable|RuleEnum|RuleInterface>> $rules
+     */
+    public function setRules(array $rules): self
+    {
+        $this->rules = $rules;
+
+        return $this;
+    }
+
+    /**
+     * @param class-string<object> $fqcn
+     */
+    public function setEntityFqcn(string $fqcn): self
+    {
+        $this->rules = $this->validator->getRulesForClassProperties($fqcn);
+
+        return $this;
+    }
 
     //--------------------------------------------------
     // front-end validation
@@ -28,16 +44,10 @@ abstract class FormValidator
      */
     public function getHtmlValidationAttrs(string $fieldName, array $excludeAttributes = []): string
     {
-        if ($this->rules === []) {
-            $this->rules = $this->getRules();
-        }
-
-
         $rules = $this->rules[$fieldName] ?? null;
         if ($rules === null || $rules === []) {
             return '';
         }
-
 
         $attributes = [];
         if (\in_array(Rule::notNull->value, $rules, true)) {
@@ -59,7 +69,7 @@ abstract class FormValidator
         }
 
         if (isset($rules['regex'])) {
-            $attributes['pattern'] = trim($rules['regex'], '/');
+            $attributes['pattern'] = trim($rules['regex'], '/'); // @phpstan-ignore-line (can not cast ... to string)
         }
 
         $strAttributes = '';
