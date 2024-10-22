@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Http;
 
 use App\Entities\LoginFormData;
-use LeanPHP\Validation\FormValidator;
+use LeanPHP\Validation\Form\EntityFormValidator;
 
 /**
- * @extends FormValidator<LoginFormData>
+ * @extends EntityFormValidator<LoginFormData>
  */
-final class LoginForm extends FormValidator
+final class LoginForm extends EntityFormValidator
 {
     protected function getEntityFqcn(): string
     {

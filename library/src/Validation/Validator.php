@@ -246,39 +246,46 @@ final class Validator implements ValidatorInterface
 
         $reflectionProperties = (new ReflectionClass($fqcn))->getProperties();
         foreach ($reflectionProperties as $reflectionProperty) {
-            foreach ($reflectionProperty->getAttributes() as $reflectionAttribute) {
-                if ($reflectionAttribute->getName() !== Validates::class) {
-                    continue;
-                }
+            $rules = [];
 
-                $rules = $reflectionAttribute->getArguments()[0] ?? [];
-                \assert(\is_array($rules));
+            $reflectionAttribute = $reflectionProperty->getAttributes(Validates::class)[0] ?? null;
+
+            $reflectionType = $reflectionProperty->getType();
+            if ($reflectionType instanceof \ReflectionNamedType) {
+                // nullable types are not considered unions, but a nullable named type
+                $rules['type'] = $reflectionType->getName();
+                if (!$reflectionType->allowsNull()) {
+                    $rules[] = Rule::notNull->value;
+                }
+            }
+
+            if ($reflectionAttribute !== null) {
+                $rules = array_merge($rules, $reflectionAttribute->getArguments()[0]);
                 foreach ($rules as $i => $rule) {
                     if ($rule instanceof RuleEnum) {
                         $rules[$i] = $rule->value;
                     }
                 }
 
-                $type = $reflectionProperty->getType();
                 // not typed: can be optional or not-null
                 // typed not nullable: can only be not-null
                 // typed nullable: can only be optional
 
                 if (
-                    $type === null
-                    && ! \in_array(Rule::optional->value, $rules, true)
-                    && ! \in_array('not-null', $rules, true)
+                    $reflectionType === null
+                    && !\in_array(Rule::optional->value, $rules, true)
+                    && !\in_array('not-null', $rules, true)
                 ) {
                     array_unshift($rules, Rule::optional->value);
-                } elseif ($type !== null) {
-                    if ($type->allowsNull()) {
+                } elseif ($reflectionType !== null) {
+                    if ($reflectionType->allowsNull()) {
                         if (\in_array(Rule::notNull->value, $rules, true)) {
                             $name = $reflectionProperty->getName();
 
                             throw new LogicException("Property '$name' on instance of '$fqcn', can't be both typed-nullable and has the 'not-null' validation rule.");
                         }
 
-                        if (! \in_array(Rule::optional->value, $rules, true)) {
+                        if (!\in_array(Rule::optional->value, $rules, true)) {
                             array_unshift($rules, Rule::optional->value);
                         }
                     } else {
@@ -288,14 +295,14 @@ final class Validator implements ValidatorInterface
                             throw new LogicException("Property '$name' on instance of '$fqcn', can't be both non-nullable and has the 'optional' validation rule.");
                         }
 
-                        if (! \in_array(Rule::notNull->value, $rules, true)) {
+                        if (!\in_array(Rule::notNull->value, $rules, true)) {
                             array_unshift($rules, Rule::notNull->value);
                         }
                     }
                 }
-
-                $this->rules[$reflectionProperty->getName()] = $rules;
             }
+
+            $this->rules[$reflectionProperty->getName()] = $rules;
         }
     }
 
@@ -416,6 +423,7 @@ final class Validator implements ValidatorInterface
             case ParametrizedRule::equal->value: return $value === $arg;
             case ParametrizedRule::in->value: return \in_array((string) $value, $args, true); // @phpstan-ignore-line (Cannot cast mixed to string.)
             case ParametrizedRule::sameAs->value: return $value === $this->getValue($arg);
+            case 'type': return true; // do nothing
         }
 
         throw new UnexpectedValueException("Unknown rule '$rule'. Should be one from the ParametrizedRule enum.");

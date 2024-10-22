@@ -334,7 +334,7 @@ final class TestRule implements RuleInterface
 
 final class TestValidatesAttributeTypedNotInitialized
 {
-    #[Validates]
+    #[Validates([Rule::notNull])]
     public string $typedNotInitialized;
 }
 

@@ -9,7 +9,7 @@ final readonly class Validates
 {
     public function __construct(
         /** @var array<string|int, scalar|Rule> $rules */
-        public array $rules = [],
+        public array $rules,
     ) {
     }
 }

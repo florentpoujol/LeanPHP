@@ -1,14 +1,19 @@
+<?php
+/**
+ * @var \App\Http\LoginForm $form
+ */
+?>
 <h1>Login</h1>
 
 <form action="/auth/login" method="post">
     <div>
         <label for="email">Email: </label>
-        <input type="email" id="email" name="email" />
+        <input type="email" id="email" name="email" <?= $form->getHtmlValidationAttrs('email') ?>/>
     </div>
 
     <div>
-        <label for="password">Email: </label>
-        <input type="password" id="password" name="password" />
+        <label for="password">Password: </label>
+        <input type="password" id="password" name="password" <?= $form->getHtmlValidationAttrs('password') ?>/>
     </div>
 
     <div>

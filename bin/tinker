@@ -1,0 +1,18 @@
+#!/usr/bin/php
+<?php declare(strict_types=1);
+
+use LeanPHP\Console\InputOutput\EchoOutput;
+use LeanPHP\Container\Container;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+require_once __DIR__ . '/../bootstrap/init-container.php';
+assert(isset($container) && $container instanceof Container);
+
+// tinker below
+$output = new EchoOutput();
+
+$validator = new LeanPHP\Validation\Validator();
+
+dd($validator->getRulesForClassProperties(\App\Entities\LoginFormData::class));
+

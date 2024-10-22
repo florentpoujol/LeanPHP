@@ -17,16 +17,17 @@ final readonly class AuthController
         private PhpViewRenderer $viewRenderer,
         private ServerRequest $request,
         private HasherInterface $hasher,
+        private LoginForm $loginForm,
     ) {
     }
 
     /**
      * Route: GET /auth/login
      */
-    public function showLoginForm(LoginFormData $form): Response
+    public function showLoginForm(): Response
     {
         $html = $this->viewRenderer->render('login', [
-            'form' => $form,
+            'form' => $this->loginForm,
         ]);
 
         return new Response(body: $html);
@@ -35,7 +36,7 @@ final readonly class AuthController
     /**
      * Route: POST /auth/login
      */
-    public function login(ServerRequestEntityValidator $validator, LoginForm $form): RedirectResponse
+    public function login(ServerRequestEntityValidator $validator): RedirectResponse
     {
         $validator->setEntityFqcn(LoginFormData::class);
         if (! $validator->validate()) {
@@ -45,7 +46,7 @@ final readonly class AuthController
         /** @var LoginFormData $formEntity */
         $formEntity = $validator->getValidatedEntity();
 
-        $form->getEntity();
+        // $formEntity = $form->getEntity();
 
         /** @var null|User $user */
         $user = User::getQueryBuilder()
