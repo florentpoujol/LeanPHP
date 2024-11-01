@@ -6,6 +6,7 @@ use LeanPHP\EntityHydrator\EntityHydrator;
 use LeanPHP\EntityHydrator\EntityHydratorInterface;
 use LeanPHP\Hasher\BuiltInPasswordHasher;
 use LeanPHP\Hasher\HasherInterface;
+use LeanPHP\OptionalArg;
 use LeanPHP\Validation\Validator;
 use LeanPHP\Validation\ValidatorInterface;
 use Nyholm\Psr7\Request;
@@ -349,183 +350,102 @@ final class Container
         return isset($this->parameters["$scope$name"]);
     }
 
-    public function getStringParameterOrThrow(string $name): string
-    {
-        if (!$this->hasParameter($name)) {
-            throw new \UnexpectedValueException("Parameter '$name' is not set.");
-        }
-
-        return (string) $this->parameters[$name];
-    }
-
-    public function getStringParameterOrNull(string $name): ?string
-    {
-        if (!$this->hasParameter($name)) {
-            return null;
-        }
-
-        return (string) $this->parameters[$name];
-    }
-
-    public function getStringParameterOrDefault(string $name, string $default): string
-    {
-        if (!$this->hasParameter($name)) {
-            return $default;
-        }
-
-        return (string) $this->parameters[$name];
-    }
-
-    // --------------------------------------------------
-
-    public function getIntParameterOrThrow(string $name): int
-    {
-        if (!$this->hasParameter($name)) {
-            throw new \UnexpectedValueException("Parameter '$name' is not set.");
-        }
-
-        return (int) $this->parameters[$name];
-    }
-
-    public function getIntParameterOrNull(string $name): ?int
-    {
-        if (!$this->hasParameter($name)) {
-            return null;
-        }
-
-        return (int) $this->parameters[$name];
-    }
-
-    public function getIntParameterOrDefault(string $name, int $default): int
-    {
-        if (!$this->hasParameter($name)) {
-            return $default;
-        }
-
-        return (int) $this->parameters[$name];
-    }
-
-    // --------------------------------------------------
-
-    public function getFloatParameterOrThrow(string $name): float
-    {
-        if (!$this->hasParameter($name)) {
-            throw new \UnexpectedValueException("Parameter '$name' is not set.");
-        }
-
-        return (float) $this->parameters[$name];
-    }
-
-    public function getFloatParameterOrNull(string $name): ?float
-    {
-        if (!$this->hasParameter($name)) {
-            return null;
-        }
-
-        return (float) $this->parameters[$name];
-    }
-
-    public function getFloatParameterOrDefault(string $name, float $default): float
-    {
-        if (!$this->hasParameter($name)) {
-            return $default;
-        }
-
-        return (float) $this->parameters[$name];
-    }
-
-    // --------------------------------------------------
-
-    public function getBoolParameterOrThrow(string $name): bool
-    {
-        if (!$this->hasParameter($name)) {
-            throw new \UnexpectedValueException("Parameter '$name' is not set.");
-        }
-
-        return (bool) $this->parameters[$name];
-    }
-
-    public function getBoolParameterOrNull(string $name): ?bool
-    {
-        if (!$this->hasParameter($name)) {
-            return null;
-        }
-
-        return (bool) $this->parameters[$name];
-    }
-
-    public function getBoolParameterOrDefault(string $name, bool $default): bool
-    {
-        if (!$this->hasParameter($name)) {
-            return $default;
-        }
-
-        return (bool) $this->parameters[$name];
-    }
-
-    // --------------------------------------------------
-
     /**
-     * @return array<mixed>
+     * @return ($default is null ? null|string : string)
      */
-    public function getArrayParameterOrThrow(string $name): array
+    public function getStringParameter(string $name, null|string $default = '{{ArgNotProvided}}'): null|string
     {
         if (!$this->hasParameter($name)) {
-            throw new \UnexpectedValueException("Parameter '$name' is not set.");
+            if ($default === '{{ArgNotProvided}}') {
+                throw new \UnexpectedValueException("Parameter '$name' is not set.");
+            }
+
+            return $default;
         }
 
-        return (array) $this->parameters[$name];
+        return (string) $this->parameters[$name];
     }
 
     /**
-     * @return null|array<mixed>
+     * @return ($default is null ? null|int : int)
      */
-    public function getArrayParameterOrNull(string $name): ?array
+    public function getIntParameter(string $name, null|int $default = \PHP_INT_MIN): null|int
     {
         if (!$this->hasParameter($name)) {
-            return null;
+            if ($default === \PHP_INT_MIN) {
+                throw new \UnexpectedValueException("Parameter '$name' is not set.");
+            }
+
+            return $default;
         }
 
-        return (array) $this->parameters[$name];
+        return (int) $this->parameters[$name];
     }
 
     /**
-     * @param array<mixed> $default
+     * @return ($default is null ? null|float : float)
+     */
+    public function getFloatParameter(string $name, null|float $default = \PHP_FLOAT_MIN): null|float
+    {
+        if (!$this->hasParameter($name)) {
+            if ($default === \PHP_FLOAT_MIN) {
+                throw new \UnexpectedValueException("Parameter '$name' is not set.");
+            }
+
+            return $default;
+        }
+
+        return (float) $this->parameters[$name];
+    }
+
+    /**
+     * @param null|bool $default
      *
-     * @return array<mixed>
+     * @return ($default is null ? null|bool : bool)
      */
-    public function getArrayParameterOrDefault(string $name, array $default): array
+    public function getBoolParameter(string $name, null|bool|string $default = ''): null|bool
     {
         if (!$this->hasParameter($name)) {
+            if (\is_string($default)) {
+                throw new \UnexpectedValueException("Parameter '$name' is not set.");
+            }
+
+            return $default;
+        }
+
+        return (bool) $this->parameters[$name];
+    }
+
+    /**
+     * @param null|array<mixed> $default
+     *
+     * @return ($default is null ? null|array<mixed> : array<mixed>)
+     */
+    public function getArrayParameter(string $name, null|array $default = [false]): null|array
+    {
+        if (!$this->hasParameter($name)) {
+            if ($default === [false]) {
+                throw new \UnexpectedValueException("Parameter '$name' is not set.");
+            }
+
             return $default;
         }
 
         return (array) $this->parameters[$name];
     }
 
-    // --------------------------------------------------
-
-    public function getObjectParameterOrThrow(string $name): object
+    /**
+     * @param null|object $default
+     *
+     * @return ($default is null ? null|object : object)
+     */
+    public function getObjectParameter(string $name, null|object|string $default = ''): null|object
     {
         if (!$this->hasParameter($name)) {
-            throw new \UnexpectedValueException("Parameter '$name' is not set.");
-        }
+            if (\is_string($default)) {
+                throw new \UnexpectedValueException("Parameter '$name' is not set.");
+            }
 
-        return (object) $this->parameters[$name];
-    }
-
-    public function getObjectParameterOrNull(string $name): ?object
-    {
-        if (!$this->hasParameter($name)) {
-            return null;
-        }
-
-        return (object) $this->parameters[$name];
-    }
-
-    public function getObjectParameterOrDefault(string $name, object $default): object
-    {
-        if (!$this->hasParameter($name)) {
             return $default;
         }
 

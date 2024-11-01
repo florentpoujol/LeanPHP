@@ -11,7 +11,7 @@ use Psr\Log\LoggerInterface;
 
 assert(isset($container) && $container instanceof Container);
 
-$environmentName = $container->getStringParameterOrThrow('environmentName');
+$environmentName = $container->getStringParameter('environmentName');
 
 // HTTP setup
 $container->setFactory(ServerRequestInterface::class, static function (): ServerRequest {
