@@ -6,7 +6,6 @@ use LeanPHP\EntityHydrator\EntityHydrator;
 use LeanPHP\EntityHydrator\EntityHydratorInterface;
 use LeanPHP\Hasher\BuiltInPasswordHasher;
 use LeanPHP\Hasher\HasherInterface;
-use LeanPHP\OptionalArg;
 use LeanPHP\Validation\Validator;
 use LeanPHP\Validation\ValidatorInterface;
 use Nyholm\Psr7\Request;
@@ -98,12 +97,12 @@ final class Container
     }
 
     /**
-     * @param class-string<ServiceType> $abstractFQCN
      * @param ServiceType $instance
+     * @param null|string|class-string<ServiceType> $alias
      */
-    public function setInstance(string $abstractFQCN, object $instance): void
+    public function setInstance(object $instance, null|string $alias = null): void
     {
-        $this->instances[$abstractFQCN] = $instance;
+        $this->instances[$alias ?? $instance::class] = $instance; // @phpstan-ignore-line (gotta fixup the alias system)
     }
 
     /**

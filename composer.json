@@ -28,7 +28,7 @@
         "rectify-check": "@rector-fix --dry-run",
         "style-fix": "vendor/bin/php-cs-fixer fix -vvv --ansi",
         "style-check": "@style-fix --dry-run --diff",
-        "type-check": "vendor/bin/phpstan analyze --ansi",
+        "type-check": "vendor/bin/phpstan analyze --ansi --memory-limit=1G",
         "tests": "vendor/bin/phpunit --testdox",
         "all": [
             "@rectify-fix",

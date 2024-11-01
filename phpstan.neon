@@ -55,3 +55,4 @@ parameters:
             message: '#Variable (property access|method call) on object\.#'
             paths:
                 - library/src/AbstractProxy.php
+

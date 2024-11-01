@@ -3,7 +3,10 @@
 namespace App\Http;
 
 use App\Entities\User;
+use LeanPHP\Http\Attributes\MapQueryString;
+use LeanPHP\Http\Attributes\MapRouteParameter;
 use LeanPHP\Http\Response;
+use LeanPHP\Http\Route;
 use LeanPHP\Http\ServerRequest;
 use LeanPHP\PhpViewRenderer;
 
@@ -38,5 +41,33 @@ final readonly class PublicController
         ]);
 
         return new Response(body: $html);
+    }
+
+    /**
+     * Route: GET /test/{slug}/{limit}?page=2
+     */
+    public function testRouteAction(
+        ServerRequest $request,
+        Route $route,
+        // ?User $user = null,
+        string $slug,
+        #[MapRouteParameter('slug')] string $otherSlug,
+        #[MapQueryString] int $page,
+        #[MapQueryString('page')] int $otherPage,
+        #[MapQueryString('whatever')] ?int $nonExistantQueryString2,
+        #[MapQueryString(validate: false)] PaginationDTO $paginationDTO,
+        #[MapQueryString('whatever')] int $nonExistantQueryString = 6,
+        int $limit = 1,
+        bool $test = false,
+    ): Response
+    {
+        dd(
+            $request::class, $route, /*$user,*/
+            '----------',
+            $slug, $limit, $test, $otherSlug,
+            '----------',
+            $request->getQueryParams(),   $page, $otherPage, $nonExistantQueryString, $nonExistantQueryString2,
+            $paginationDTO,
+        );
     }
 }

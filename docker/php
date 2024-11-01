@@ -2,4 +2,4 @@
 
 # Alias this file to "dphp" for instance
 
-docker run -i --user 1000:1000 --rm -v .:/var/smoll-app -w /var/smoll-app --network smollphp-skeleton_default smollphp-skeleton-php:latest "$@"
+docker run -i --user 1000:1000 --rm -v .:/var/leanphp-app -w /var/leanphp-app --network leanphp_default leanphp-php:latest "$@"

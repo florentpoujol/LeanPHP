@@ -21,8 +21,10 @@ $routes = [
 
     (new Route(['GET'], '/auth/logout', AuthController::class . '@logout')),
 
+    (new Route(['GET'], '/test/{slug}/{limit}', PublicController::class . '@testRouteAction')),
+
     // must be the last route
-    new Route(['GET', 'POST', 'PUT', 'HEAD', 'DELETE'], '/{any}', fn($any): Response => new Response(404, body: 'this is the fallback route'), ['any' => '.*']),
+    new Route(['GET', 'POST', 'PUT', 'HEAD', 'DELETE'], '/{any}', fn(): Response => new Response(404, body: 'this is the fallback route'), ['any' => '.*']),
 ];
 
 /** @var Route $route */
