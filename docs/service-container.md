@@ -1,39 +1,43 @@
-# Object Factory (Dependency Injection / Service container)
+# Service container
 
-`\LeanPHP\ObjectFactory` is what you would typically call a Dependency Injection container, or service container.
+`\LeanPHP\Container` is a service that knows 
+- how to build/instantiate objects, because it knows how to automatically fill the parameter or any methods including constructors
+- is a container for the already built "singleton" services
+- is a container of scalar *parameters*
 
-It is a service that knows how to build/instantiate objects, and how to automatically fill method parameters.
-
-This allows to use **dependency injection** and **autowiring** in the application.   
+This allows to use **dependency injection** and **autowiring** in the application.  
 
 That means you will not have to instantiate most objects you interact with yourself, but you will merely declare them as constructor arguments of your service.   
 When your service is itself instantiated through the container, all its dependencies will be resolved and instantiated through the container too, recursively.
 
 The type of the dependencies are not limited to concrete implementation of objects, but they can be interfaces or even scalar values.
 
-For all that to work, the container needs to be configured with **parameters**, **factories** and **aliases**.    
-Properly building the container is the main application bootstrap phase.
+For all that to work, the container needs to be configured with **parameters**, **factories** and **aliases**.      
+Properly configuring the container is the main application bootstrap phase.
 
 ## Note on the term Singleton
 
-Singleton is a design pattern that actively prevent to have several instances of a given class.
+*Singleton* is a design pattern that actively prevent to have several instances of a given class.
 
-In this documentation, singleton is used to define a class that **will not** be instantiated more than once via the ObjectFactory, even if the class do not technically implement the Singleton design pattern.
+In this documentation, singleton is used to define a class that **will not** be instantiated more than once via the service container, even if the class do not technically implement the Singleton design pattern.
 
 ## Resolving objects out of the container
 
-Its main usage will be through autowiring, but you can also use the container directly to resolve objects.
+Thanks to autowiring, you will mostly not interact directly with the container, but you can do it if needed.
 
-You can autowire the Container or get it via the Framework's `getContainer()` methods :
-
+You can autowire the container itself or get it via its `getInstance()` method (the container itself is a true singleton):
 ```php
 // In a service
-__construct(
-    private \LeanPHP\Container\Container::class $container,
-)
+final readonly class MyService
+{
+    public function __construct(
+        private Container $container,
+    ) {
+    }
+}
 
 // or anywhere else
-$container = \LeanPHP\Container\Container::getInstance();
+$container = Container::getInstance();
 ```
 
 Then you can use its two methods :
@@ -44,29 +48,54 @@ Then you can use its two methods :
 Also `getInstance()` will always return the same instance for services that are marked as singleton.
 `makeInstance()` will always create a new instance, even for services marked as singleton.
 
+The `$serviceName` argument can be a concrete implementation or an interface FQCN, or an alias.
+
 The second argument is used to directly pass values for the constructor arguments when they can't be autowired.  
 It is expected to be an associative array where the keys match some of the constructor's arguments names.
 
-## Setting instance directly in the container
+Examples:
 
-If you have pre-built object instances, you can set tehm in the container with the `setInstance(object $object, ?string $alias = null)` method.
+```php
+$container->getInstance(MyService::class); // concrete implementation
+// it would be the same as `new MyService`, if the constructor had no parameters
+
+// all or part of the constructor parameters can be passed to the $extraArguments
+$container->get(MyService::class, [
+    'someArg' => 'someValue'
+]);
+ 
+$container->getInstance(Psr\CacheInterface::class); // interface
+$container->getInstance('app.current_user'); // alias
+```
+
+Interface or alias needs to be configured to "point to" a concrete implementation.
+
+## Setting instances directly in the container
+
+If you have pre-built object instances, you can set them in the container with the `setInstance(object $object, ?string $alias = null)` method.
 
 ```php
 $user = new User(); // the logged-in user
 
-$container->setInstance($user);
-
-// give them alias with the second argument
+$container->setInstance($user, 'app.current_user');
+// give them alias with the second argument if needed
 ```
 
-## Filling scalar values with parameters
-
-When a constructor argument has a primitive type or no type at all, the container can not know on its own what value to pass to that argument.
-
-When directly resolving instances via the `ge/MakeInstance()` methods, the value can directly be provided via the `$extraArguments` parameter.  
-Ie:
+The instance can now be resolved out of the container either from the class FQCN, or from the given alias:
 ```php
-final readonly class MyClass
+$container->getInstance(User::class);
+$container->getInstance('app.current_user');
+```
+
+## Filling argument scalar values with parameters
+
+When a constructor argument has a primitive type or no type at all, the container can not know by default what value to pass to that argument.
+
+When directly resolving instances via the `get/MakeInstance()` methods, the value can directly be provided via the `$extraArguments` parameter.  
+Ie:
+
+```php
+final readonly class MyService
 {
     public function __construct(
         private int $somePrimitiveValue,
@@ -74,21 +103,21 @@ final readonly class MyClass
 }
 
 // would throw an ContainerException because the container doesn't know what value to pass to `$somePrimitiveValue`
-$container->getInstance(MyClass::class); 
+$container->getInstance(MyService::class); 
 
 // but this would work
-$container->getInstance(MyClass::class, [
+$container->get(MyService::class, [
     'somePrimitiveValue' => 10,
 ]);
 ```
 
-When autowiring, the container will try to find **a parameter** that has the same name as the argument.  
+When autowiring, though, the container will try to find **a parameter** that has the same name as the method argument.  
 
-A parameter is a scalar or array or object value set in the container via the `setParameter(string $key, scalar|array $value)` method.
+A parameter is a scalar (string, int, float, bool, null), array or object value set in the container via the `setParameter(string $key, scalar|array|object $value)` method.
 
 Ie:
 ```php
-final readonly class MyClass
+final readonly class MyService
 {
     public function __construct(
         private int $somePrimitiveValue,
@@ -97,8 +126,8 @@ final readonly class MyClass
 
 $container->setParameter('somePrimitiveValue', 10);
 
-// now the MyClass object can be built without giving a specific value to the argument 
-$container->getInstance(MyClass::class); 
+// now the MyService object can be built without giving a specific value to the argument 
+$container->getInstance(MyService::class); 
 ```
 
 ### Scope parameters per class
@@ -111,14 +140,14 @@ When building an object, the scoped parameter will be tried first and them it wi
 
 Ie:
 ```php
-final readonly class MyClass
+final readonly class MyService
 {
     public function __construct(
         private int $somePrimitiveValue,
     ) {}
 }
 
-final readonly class MyOtherClass
+final readonly class MyOtherService
 {
     public function __construct(
         private string $somePrimitiveValue,
@@ -127,10 +156,10 @@ final readonly class MyOtherClass
 
 // if the value may appear in several controller and is known in advance it can be set directly in the container
 $container->setParameter('somePrimitiveValue', 10);
-$container->setParameter('somePrimitiveValue', 'foo', MyOtherClass::class);
+$container->setParameter('somePrimitiveValue', 'foo', MyOtherService::class);
 
 // this works
-$container->getInstance(MyClass::class); // will use the global parameter since none is specified for MyClass
+$container->getInstance(MyService::class); // will use the global parameter since none is specified for MyService
 $container->getInstance(MyOtherClass::class); // will use the parameter specific to MyOtherClass
 ```
 
@@ -142,8 +171,9 @@ When autowiring, you can use the `AutowireParameter(string $paramName)` attribut
 When using the `$extraArguments` argument of the `get/makeInstance()` methods, you can set an argument to point to a parameter that has a different name by prefixing it with `%`.
 
 Ie:
+
 ```php
-final readonly class MyClass
+final readonly class MyService
 {
     public function __construct(
         #[AutowireParameter('app.name')]
@@ -156,10 +186,10 @@ final readonly class MyClass
 $container->setParameter('app.name', 'the app name');
 
 // with the attribute
-$container->getInstance(MyClass::class);
+$container->getInstance(MyService::class);
 
-// without the attribute, 
-$container->getInstance(MyClass::class, [
+// without the attribute
+$container->get(MyService::class, [
     'appName' => '%app.name',
 ]);
 ```
@@ -167,26 +197,27 @@ $container->getInstance(MyClass::class, [
 ### Manually getting parameters out of the container
 
 You can use the `getParameter(string $name): mixed` method, or any of the typed methods.  
-The similar methods are available for the `string`, `int`, `float`, `bool`, `array` and `object` types.
+Similar methods are available for the `string`, `int`, `float`, `bool`, `array` and `object` types.
 
 Ie for `int`:
 ```php
 // without the second argument, the method will throw an exception if the parameter doesn't exist
 $container->getIntParameter('name');
 
-// all methods have a second $default parameter whose value will be returned if the parameter doesn't exist
+// all typed methods have a second $default parameter whose value will be returned if the parameter doesn't exist
 $container->getIntParameter('name', 42);
 
 // the $default argument can also be null.
-// Only in that case, PHPStan understand that the method return value is nullable
+// only in that case, PHPStan understand that the method return value is nullable
 $container->getIntParameter('name', null);
 ```
 
 ## Providing factory functions
 
-When a class can not (or you don't want to) be created automatically by the container, you can provide a factory, in the form of any callable, that must return the instance, to the `setFactory(string $serviceName, callable $factory)` method.
+When a class can not be created automatically by the container, you have to provide a factory, in the form of any callable, that must return the instance.
+Set the factory with the `setFactory(string $serviceName, callable $factory)` method.
 
-The `serviceName` argument can be a concrete implementation, an interface or an alias.
+The `$serviceName` argument can be a concrete implementation or an interface FQCN, or an alias.
 
 ```php
 $container->setFactory(MyService::class, function (Container $container, array $extraArguments = []): MyService {
@@ -211,23 +242,19 @@ The callable doesn't need to be a closure, but can be any callable, including in
 Declaring your service dependencies with interfaces can be useful, because it allows to swap the implementation of the underlying service later on in the project, or based on the environment.  
 A main use for this is to use a different implementation during tests.
 
-For that to work, you need to tell the container which concrete implementation to use for every interface.  
+For that to work, you need to tell the container which concrete implementation to instantiate, for a given interface.  
 
 Pass the interface and the concrete class fully qualified class names to the `alias(string $aliasName, string $aliasedName)` method.  
 Example: 
 ```php
-$container->alias(\App\MyInterface::class, \App\MyService::class);
+$container->alias(MyInterface::class, MyService::class);
 ```
-
-In your controller for instance, you can typehint the constructor for the `MyInterface`, you will receive a `MyService` instance.
-
-If, in the container you swap the `MyService` class by any other, you will receive that new class in your controller without changing the type declaration or how you use the service.
 
 **All services are considered singleton by default**. If that shouldn't be the case, set the third `$isSingleton` argument to `false`.
 
 ## Distinguish between several implementation that have the same interfaces 
 
-Sometimes, your app needs several instances of the same concrete implementation but that differ on how they are build.
+Sometimes, your app may need several instances of the same concrete implementation but that differ on how they are build.
 
 We can not distinguish them from their type, or interface, but you still need to be able to inject specific instances to specific services (and the strategy pattern can not be used to prevent that situation).
 
@@ -236,11 +263,11 @@ In this case, you must give an arbitrary name to each implementation so that you
 Example with two loggers that are the same class, but logs in a different file.
 ```php
 // in the container setup
-$container->setFactory('logger.error', function () {
+$container->setFactory('logger.error', function (): FileLogger {
     return new FileLogger('/var/logs/errors.log'); 
 });
 
-$container->setFactory('logger.info', function () {
+$container->setFactory('logger.info', function (): FileLogger {
     return new FileLogger('/var/logs/info.log'); 
 });
 
@@ -248,7 +275,7 @@ $container->setFactory('logger.info', function () {
 $container->alias(LoggerInterface::class, 'logger.info');
 
 // in your class
-final readonly class MyClass
+final readonly class MyService
 {
     public function __construct(
         #[AutowireService('logger.error')]

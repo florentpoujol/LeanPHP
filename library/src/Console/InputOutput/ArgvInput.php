@@ -31,11 +31,13 @@ final class ArgvInput extends AbstractInput
                 // but I'm not sure when they would exist
                 continue;
             }
+
             if ($token === '-') {
                 // these checks are in Symfony's ArgvInput parseToken() method
                 // but I'm not sure when they would exist
                 continue;
             }
+
             if (str_starts_with($token, '--')) {
                 $this->parseLongOption($token);
             } elseif ($token[0] === '-') {

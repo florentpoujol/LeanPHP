@@ -18,7 +18,7 @@ assert(isset($container) && $container instanceof Container);
 
 $httpKernel = new HttpKernel($container);
 
-$serverRequest = $container->get(ServerRequest::class);
+$serverRequest = $container->getInstance(ServerRequest::class);
 $container->setInstance($serverRequest);
 
 $response = $httpKernel->handle(

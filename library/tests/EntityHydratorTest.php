@@ -31,7 +31,7 @@ final class EntityHydratorTest extends TestCase
             'json_data_object' => '{"property":"value"}',
         ];
 
-        Container::getInstance()->bind(\DateTimeInterface::class, \DateTime::class, isSingleton: false);
+        Container::get()->alias(\DateTimeInterface::class, \DateTime::class, isSingleton: false);
 
         // act
         $entity = $hydrator->hydrateOne($data, MyHydratorTestEntity::class);
@@ -64,7 +64,7 @@ final class EntityHydratorTest extends TestCase
             'updated_at' => '2024-10-05 11:27:00',
         ];
 
-        Container::getInstance()->bind(\DateTimeInterface::class, \DateTime::class, isSingleton: false);
+        Container::get()->alias(\DateTimeInterface::class, \DateTime::class, isSingleton: false);
 
         // act
         $entity = $hydrator->hydrateOne($data, MyHydratorTestEntity::class);
@@ -98,7 +98,7 @@ final class EntityHydratorTest extends TestCase
             'updated_at' => '2024-10-05 11:27:00',
         ];
 
-        Container::getInstance()->bind(\DateTimeInterface::class, \DateTime::class, isSingleton: false);
+        Container::get()->alias(\DateTimeInterface::class, \DateTime::class, isSingleton: false);
 
         // act
         $entity = $hydrator->hydrateOne($data, MyHydratorTestEntity::class, [

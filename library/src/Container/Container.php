@@ -2,6 +2,8 @@
 
 namespace LeanPHP\Container;
 
+use DateTimeImmutable;
+use DateTimeInterface;
 use LeanPHP\EntityHydrator\EntityHydrator;
 use LeanPHP\EntityHydrator\EntityHydratorInterface;
 use LeanPHP\Hasher\BuiltInPasswordHasher;
@@ -16,184 +18,220 @@ use ReflectionNamedType;
 use ReflectionUnionType;
 
 /**
- * Note Florent 28/09/2024 I'm doing something very wrong with the genericity here because it doesn't work
- *
- * @template ServiceType of object
+ * @phpstan-type ContainerFactory callable(self $container, array<string, mixed> $extraArguments): object
  */
 final class Container
 {
     /**
-     * @var array<class-string<ServiceType>, (callable(): ServiceType)|class-string<ServiceType>>
+     * @var array<string|class-string, Binding>
      */
-    private array $bindings = [
-        ResponseInterface::class => Response::class,
-        RequestInterface::class => Request::class, // client request
-        \DateTimeInterface::class => \DateTimeImmutable::class,
-        ValidatorInterface::class => Validator::class,
-    ];
+    private array $bindings = [];
 
     /**
-     * @var array<class-string<ServiceType>, (callable(): ServiceType)|class-string<ServiceType>>
-     */
-    private array $singletonBindings = [
-        HasherInterface::class => BuiltInPasswordHasher::class,
-        EntityHydratorInterface::class => EntityHydrator::class,
-    ];
-
-    /**
-     * Values cached by get().
-     * Typically, object instances but may be any values returned by closures or found in services.
+     * Values cached by getInstance() or passed to setInstance().
      *
-     * @var array<class-string<ServiceType>, ServiceType>
+     * @var array<string|class-string, object>
      */
     private array $instances = [];
 
     private function __construct()
     {
-        $this->instances[self::class] = $this; // @phpstan-ignore-line
+        $this->instances[self::class] = $this;
+
+        $defaultBindings = [
+            new Binding(ResponseInterface::class, Response::class, false),
+            new Binding(DateTimeInterface::class, DateTimeImmutable::class, false),
+            new Binding(ValidatorInterface::class, Validator::class, false),
+
+            new Binding(RequestInterface::class, Request::class), // client request
+            new Binding(HasherInterface::class, BuiltInPasswordHasher::class),
+            new Binding(EntityHydratorInterface::class, EntityHydrator::class),
+        ];
+
+        /** @var Binding $binding */
+        foreach ($defaultBindings as $binding) {
+            $this->bindings[$binding->serviceName] = $binding;
+        }
     }
 
-    private static ?self $self = null; // @phpstan-ignore-line (Property LeanPHP\Container::$self with generic class LeanPHP\Container does not specify its types: ServiceType)
+    private static ?self $self = null;
 
-    public static function getInstance(): self // @phpstan-ignore-line (basically same as above)
+    public static function get(): self
     {
         return self::$self ??= new self();
     }
 
-    /**
-     * @param class-string<ServiceType> $abstractFQCN
-     * @param class-string<ServiceType> $concreteFQCN
-     */
-    public function bind(string $abstractFQCN, string $concreteFQCN, bool $isSingleton = true): void
+    public static function new(): self
     {
-        if ($isSingleton) {
-            $this->singletonBindings[$abstractFQCN] = $concreteFQCN;
-        } else {
-            $this->bindings[$abstractFQCN] = $concreteFQCN;
+        return self::$self = new self();
+    }
+
+    /**
+     * @param string|class-string $aliasName The interface FQCN or alias
+     * @param string|class-string $aliasedName The concrete or interface FQCN, or alias
+     */
+    public function alias(string $aliasName, string $aliasedName, bool $isSingleton = true): void
+    {
+        if (class_exists($aliasedName) && !interface_exists($aliasName)) {
+            throw new ContainerException("The parameter \$aliasName '$aliasName' is an actual class. It should only be an interface FQCN or an arbitrary alias. Maybe you inverted both parameter ?");
         }
+
+        $this->bindings[$aliasName] = new Binding($aliasName, $aliasedName, isSingleton: $isSingleton);
     }
 
     /**
-     * @param class-string<ServiceType> $abstractFQCN
-     *
-     * @return null|class-string<ServiceType>|(callable(): ServiceType)
+     * @param class-string $serviceName The concrete or interface FQCN, or alias
+     * @param ContainerFactory $factory
      */
-    public function getBinding(string $abstractFQCN): null|string|callable
+    public function setFactory(string $serviceName, callable $factory, bool $isSingleton = true): void
     {
-        return $this->bindings[$abstractFQCN] ?? null;
+        $this->bindings[$serviceName] = new Binding($serviceName, $factory, isSingleton: $isSingleton);
     }
 
     /**
-     * @param class-string<ServiceType> $abstractFQCN
-     * @param callable(): ServiceType $concreteFactory
+     * @param string|class-string $alias An arbitrary alias
+     * @param bool $replace When false, an exception will be thrown if either the class or alias already exists
      */
-    public function setFactory(string $abstractFQCN, callable $concreteFactory, bool $isSingleton = true): void
+    public function setInstance(object $instance, null|string $alias = null, bool $replace = false): void
     {
-        if ($isSingleton) {
-            $this->singletonBindings[$abstractFQCN] = $concreteFactory;
-        } else {
-            $this->bindings[$abstractFQCN] = $concreteFactory;
+        $fqcn = $instance::class;
+        if (isset($this->instances[$instance::class]) && !$replace) {
+            $withAlias = $alias !== null ? " with alias $alias" : '';
+            throw new ContainerException("Can not set an instance of type $fqcn$withAlias in the container, because an instance already exists.");
         }
+
+        if ($alias !== null && isset($this->instances[$alias]) && !$replace) {
+            $existingType = $this->instances[$alias]::class;
+            throw new ContainerException(
+                "Can not set an instance of type $fqcn with alias $alias in the container," .
+                " because the alias already exists with an instance of type $existingType.",
+            );
+        }
+
+        if ($alias !== null) {
+            if (str_contains($alias, '\\') && !($instance instanceof $alias)) {
+                throw new ContainerException("Alias '$alias' for instance of type $fqcn seems to be a class name, but the instance doesn't implement or extend it");
+            }
+
+            $this->instances[$alias] = $instance;
+        }
+        $this->instances[$instance::class] = $instance;
     }
 
     /**
-     * @param ServiceType $instance
-     * @param null|string|class-string<ServiceType> $alias
+     * @param string|class-string $serviceName Concrete or interface Fqcn, or alias
      */
-    public function setInstance(object $instance, null|string $alias = null): void
-    {
-        $this->instances[$alias ?? $instance::class] = $instance; // @phpstan-ignore-line (gotta fixup the alias system)
-    }
-
-    /**
-     * @param class-string<ServiceType> $id
-     */
-    public function has(string $id): bool
+    public function hasService(string $serviceName): bool
     {
         return
-               isset($this->instances[$id])
-            || isset($this->singletonBindings[$id])
-            || isset($this->bindings[$id]);
+               isset($this->instances[$serviceName])
+            || isset($this->bindings[$serviceName]);
     }
 
     /**
-     * @template ServiceFQCN of object
+     * @template Service of object
      *
-     * @param class-string<ServiceFQCN> $id
+     * @param class-string<Service> $serviceName Concrete or interface Fqcn, or alias
+     * @param array<string, mixed> $extraArguments
      *
-     * @return ServiceFQCN
+     * @return Service
+     *
+     * @throws ContainerException When the service can't be resolved
      */
-    public function get(string $id): object
+    // Note Florent: technically the $serviceName can receive a regular string, but if the argument is typed as string|class-string, PHPStan throws a tantrum and doesn't recognize the Service as being used in an argument
+    public function getInstance(string $serviceName, array $extraArguments = []): object
     {
-        if (isset($this->instances[$id])) {
-            return $this->instances[$id]; // @phpstan-ignore-line
+        if (isset($this->instances[$serviceName])) {
+            /** @var Service $object */
+            $object = $this->instances[$serviceName];
+
+            return $object;
         }
 
-        $concrete = $this->make($id); // @phpstan-ignore-line
-        if ($concrete === null) {
-            throw new ContainerException("Service '$id' couldn't be resolved", 1);
+        $object = $this->makeInstance($serviceName, $extraArguments);
+        if ($object === null) {
+            throw new ContainerException("Service '$serviceName' couldn't be resolved", 1);
         }
 
-        if (isset($this->singletonBindings[$id])) {
-            $this->instances[$id] = $concrete; // @phpstan-ignore-line
-            $this->instances[$concrete::class] = $concrete;
+        $binding = $this->bindings[$serviceName] ?? null;
+        if ($binding?->isSingleton === false) {
+            $this->instances[$serviceName] = $object;
+            $this->instances[$object::class] = $object;
         }
 
-        return $concrete; // @phpstan-ignore-line
+        return $object;
     }
 
     /**
      * Returns a new instance of object or call again a callable.
      *
-     * @param class-string<ServiceType> $id
+     * @template Service of object
+     *
+     * @param class-string<Service> $serviceName Concrete or interface Fqcn, or alias
      * @param array<string, mixed> $extraArguments
      *
-     * @return null|ServiceType
-     *
-     * @throws \Exception when a service name couldn't be resolved
+     * @return null|Service
      */
-    public function make(string $id, array $extraArguments = []): ?object
+    // Note Florent: technically the $serviceName can receive a regular string, but if the argument is typed as string|class-string, PHPStan throws a tantrum and doesn't recognize the Service as being used in an argument
+    public function makeInstance(string $serviceName, array $extraArguments = []): ?object
     {
-        if (! isset($this->singletonBindings[$id]) && ! isset($this->bindings[$id])) {
-            if (class_exists($id)) {
-                return $this->createObject($id, $extraArguments);
+        $binding = $this->resolveBinding($serviceName);
+
+        if ($binding === null) {
+            if (class_exists($serviceName)) {
+                return $this->createObject($serviceName, $extraArguments);
             }
 
-            throw new ContainerException("Factory or concrete class FQCN for abstract '$id' not found.");
+            // throw new ContainerException("Factory or concrete class FQCN could be found for interface or alias '$serviceName'.");
+            return null;
         }
 
-        $bindings = array_merge($this->singletonBindings, $this->bindings);
+        $this->bindings[$serviceName] = $binding;
 
-        $value = $bindings[$id];
-
-        if (\is_callable($value)) {
-            // TODO inject dependencies in the factory too
-            return $value($this, $extraArguments);
+        /** @var ContainerFactory|class-string<Service> $concrete */
+        $concrete = $binding->factoryOrConcreteOrAlias;
+        if (\is_callable($concrete)) {
+            return $concrete($this, $extraArguments);
         }
 
-        // $value is a concrete class FQCN, which may also be and alias to other service
-
-        // resolve alias as deep as possible
-        while (isset($bindings[$value])) {
-            $value = $bindings[$value];
-
-            if (\is_callable($value)) {
-                return $value($this, $extraArguments);
-            }
+        if (\is_string($concrete) && class_exists($concrete)) {
+            return $this->createObject($concrete, $extraArguments);
+            // /** @var Service $object */
+            // $object = $this->createObject($concrete, $extraArguments);
+            // return $object;
         }
 
-        if (class_exists($value)) {
-            return $this->createObject($value, $extraArguments);
-        }
-
-        throw new ContainerException("Service '$id' resolve to a string value '$value' that is neither another known service nor a class name.");
+        // throw new ContainerException("Service '$serviceName' resolve to a value '$concrete' that is neither another known service nor a class name.");
+        return null;
     }
 
     /**
-     * @param class-string<ServiceType> $classFqcn
+     * @param string|class-string $serviceName Concrete or interface Fqcn, or alias
+     */
+    public function resolveBinding(string $serviceName): ?Binding
+    {
+        $binding = null;
+
+        while (isset($this->bindings[$serviceName])) {
+            $binding = $this->bindings[$serviceName];
+
+            if (\is_string($binding->factoryOrConcreteOrAlias) && !\is_callable($binding->factoryOrConcreteOrAlias)) {
+                $serviceName = $binding->factoryOrConcreteOrAlias;
+            } else {
+                break;
+            }
+        }
+
+        return $binding;
+    }
+
+    /**
+     * @template Service of object
+     *
+     * @param class-string<Service> $classFqcn
      * @param array<string, mixed> $extraArguments
      *
-     * @return ServiceType
+     * @return Service
      */
     private function createObject(string $classFqcn, array $extraArguments = []): object
     {
@@ -216,7 +254,7 @@ final class Container
                     if ($value[0] === '@') { // service reference
                         $value = str_replace('@', '', $value);
                         \assert(class_exists($value));
-                        $value = $this->get($value);
+                        $value = $this->getInstance($value);
                     } elseif ($value[0] === '%') { // parameter reference
                         $paramAlias = str_replace('%', '', $value);
                         $value = $this->parameters[$classFqcn . $paramAlias] ?? $this->parameters[$paramAlias];
@@ -285,10 +323,10 @@ final class Container
                 continue;
             }
 
-            /** @var class-string<ServiceType> $typeName */
+            /** @var class-string $typeName */
 
             // param is a class or interface (internal or userland)
-            if (interface_exists($typeName) && ! $this->has($typeName)) {
+            if (interface_exists($typeName) && ! $this->hasService($typeName)) {
                 $msg = "Constructor argument '$paramName' for class '$classFqcn' is declared with the interface " .
                     "'$typeName' but no binding to a concrete implementation for it is set in the container.";
 
@@ -297,7 +335,7 @@ final class Container
 
             $instance = null;
             try {
-                $instance = $this->get($typeName);
+                $instance = $this->getInstance($typeName);
             } catch (\Exception $exception) {
                 if ($exception::class === 'Exception' && $exception->getCode() === 1) {
                     if (!$paramIsMandatory) { // error during an optional parameter, do nothing

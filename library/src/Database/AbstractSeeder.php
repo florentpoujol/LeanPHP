@@ -29,7 +29,7 @@ abstract class AbstractSeeder
      */
     protected function getFactory(string $factoryFqcn): object
     {
-        return $this->container->get($factoryFqcn);
+        return $this->container->getInstance($factoryFqcn);
     }
 
     abstract public function run(): void;

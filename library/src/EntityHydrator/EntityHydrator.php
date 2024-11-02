@@ -168,8 +168,12 @@ final class EntityHydrator implements EntityHydratorInterface
         // Else this is an interface so we have to resolve the binding from the container.
         // Note that we don't support here interfaces that are added on enums.
 
-        $container = Container::getInstance();
-        $binding = $container->getBinding($propertyType);
+        $container = Container::get();
+
+        // FIXME Florent 02/11 see why the commented line below doesn't work (in tests) but the whole section after does
+        // $reflectionProperty->setValue($entity, $container->getInstance($propertyType));
+
+        $binding = $container->resolveBinding($propertyType);
 
         if ($binding === null) {
             $propertyName = $reflectionProperty->getName();
@@ -177,11 +181,12 @@ final class EntityHydrator implements EntityHydratorInterface
             throw new \Exception("Can't hydrate property '$className::$$propertyName' because its type is the interface '$propertyType' and no concrete implementation can be resolved from the container.");
         }
 
+        $binding = $binding->factoryOrConcreteOrAlias;
         if (\is_string($binding)) {
             $reflectionProperty->setValue($entity, new $binding($value));
         } else {
             // $binding is the callable factory
-            $reflectionProperty->setValue($entity, $binding($container, $value)); // @phpstan-ignore-line (Callable callable(): object invoked with 2 parameters, 0 required.)
+            $reflectionProperty->setValue($entity, $binding($container, [$value])); // @phpstan-ignore-line
         }
     }
 }

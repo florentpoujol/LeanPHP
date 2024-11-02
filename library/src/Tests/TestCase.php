@@ -46,7 +46,7 @@ abstract class TestCase extends PHPUnitTestCase
 
         $serverRequest = new ServerRequest(
             new PsrServerRequest($method, $uri, $headers, $body),
-            $this->container->get(EntityHydratorInterface::class),
+            $this->container->getInstance(EntityHydratorInterface::class),
         );
 
         $response = $httpKernel->handle(

@@ -30,7 +30,7 @@ final class MiddlewareHandler
 
         if ($middlewareFqcn !== null) {
             /** @var HttpMiddlewareInterface $middlewareInstance */
-            $middlewareInstance = $this->container->get($middlewareFqcn);
+            $middlewareInstance = $this->container->getInstance($middlewareFqcn);
 
             return $middlewareInstance->handle($request, $this);
 

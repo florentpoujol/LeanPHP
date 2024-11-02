@@ -10,7 +10,7 @@ return new class extends AbstractSeeder
         $factory = $this->getFactory(UserFactory::class);
         $factory->saveMany(4, [[
             'email' => 'test4@example.com',
-            'password' => $this->container->get(\LeanPHP\Hasher\HasherInterface::class)->hash('test4'),
+            'password' => $this->container->getInstance(\LeanPHP\Hasher\HasherInterface::class)->hash('test4'),
         ]]);
     }
 };

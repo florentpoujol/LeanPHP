@@ -55,7 +55,7 @@ Environment::readFileIfExists(__DIR__ . "/../.env.$environmentName.local", overr
 // --------------------------------------------------
 // Load bootstrap
 
-$container = Container::getInstance();
+$container = Container::new();
 $container->setParameter('environmentName', $environmentName);
 
 require __DIR__ . '/../bootstrap/factories.php'; // fill the container
@@ -63,7 +63,7 @@ require __DIR__ . '/../bootstrap/factories.php'; // fill the container
 if ($environmentName !== TEST_ENV_NAME) {
     assert(isset($whoopsErrorHandler));
     $whoopsErrorHandler->pushHandler(new CallbackHandler(function (\Throwable $exception) use ($container): void {
-        $logger = $container->get(LoggerInterface::class);
+        $logger = $container->getInstance(LoggerInterface::class);
         $message = $exception->getMessage() . ' ' . $exception->getFile() . ':' . $exception->getLine();
         $logger->error($message);
     }));

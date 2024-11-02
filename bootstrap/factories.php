@@ -29,7 +29,8 @@ $container->setParameter('baseViewPath', realpath(__DIR__ . '/../resources/views
 
 // logging
 $container->setParameter('logFilePath', Environment::getStringOrDefault('LOG_FILE', __DIR__ . '/../var/logs/main.log')); // in Production, the env var can be STDERR for instance
-$container->bind(LoggerInterface::class, ResourceLogger::class);
+
+$container->alias(LoggerInterface::class, ResourceLogger::class);
 
 // database
 $container->setFactory(\PDO::class, function (): \PDO {

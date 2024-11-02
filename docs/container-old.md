@@ -66,7 +66,7 @@ __construct(
 )
 
 // or anywhere else
-$container = \LeanPHP\Container\Container::getInstance();
+$container = \LeanPHP\Container\Container::get();
 ```
 
 Then you can use its two methods :
@@ -86,6 +86,7 @@ When a constructor argument isn't an interface or a class, and has a primitive t
 
 When directly resolving instances via the `get()` or `make()` method, the value can directly be provided via the `extraArguments` parameter.  
 Ie:
+
 ```php
 final readonly class MyClass
 {
@@ -95,7 +96,7 @@ final readonly class MyClass
 }
 
 // would throw an ContainerException because the container doesn't know what value to pass to `$somePrimitiveValue`
-$container->get(MyClass::class); 
+$container->getInstance(MyClass::class); 
 
 // but this would work
 $container->get(MyClass::class, [
@@ -127,6 +128,7 @@ To do so, specify the class FQCN as the third argument of the `set/get/HasParame
 When building an object the scoped parameter will be tried first and them it will fallback to the global one.
 
 Ie:
+
 ```php
 final readonly class MyClass
 {
@@ -147,8 +149,8 @@ $container->setParameter('somePrimitiveValue', 10);
 $container->setParameter('somePrimitiveValue', 'foo', MyOtherClass::class);
 
 // this works
-$container->get(MyClass::class); // will use the global parameter since none is specified for MyClass
-$container->get(MyOtherClass::class); // will use the parameter specific to MyOtherClass
+$container->getInstance(MyClass::class); // will use the global parameter since none is specified for MyClass
+$container->getInstance(MyOtherClass::class); // will use the parameter specific to MyOtherClass
 ```
 
 ### When parameter names are different from the argument names
@@ -159,6 +161,7 @@ When autowiring, you can use the `AutowireParameter(string $paramName)` attribut
 When using the `$extraArguments` argument of the `get/make` methods, you can set an argument to point to a parameter that has a different name by prefixing it with `%`.
 
 Ie:
+
 ```php
 final readonly class MyClass
 {
@@ -173,7 +176,7 @@ final readonly class MyClass
 $container->setParameter('app.name', 'the app name');
 
 // with the attribute
-$container->get(MyClass::class);
+$container->getInstance(MyClass::class);
 
 // without the attribute, 
 $container->get(MyClass::class, [

@@ -17,7 +17,7 @@ final class HttpKernel
     public function __construct(
         private readonly Container $container,
     ) {
-        $container->setInstance($this);
+        $container->setInstance($this, replace: true);
     }
 
     /**
@@ -65,7 +65,7 @@ final class HttpKernel
             // "Controller@method"
             /** @var class-string<object> $fqcn */
             [$fqcn, $method] = explode('@', $action, 2);
-            $action = [$this->container->get($fqcn), $method];
+            $action = [$this->container->getInstance($fqcn), $method];
             \assert(\is_callable($action));
 
             $routeSegments = $route->getActionArguments();
@@ -89,7 +89,7 @@ final class HttpKernel
         $parameters = [];
         $reflMethod = new ReflectionMethod($controllerFqcn, $method);
 
-        $serverRequest = $this->container->get(ServerRequest::class);
+        $serverRequest = $this->container->getInstance(ServerRequest::class);
         $queryStrings = $serverRequest->getQueryParams();
 
         $reflParameters = $reflMethod->getParameters();
@@ -127,7 +127,8 @@ final class HttpKernel
                 if (isset($routeSegments[$paramName])) { // inject route segment
                     $parameters[$paramName] = $scalarCastFunction($routeSegments[$paramName]);
                 } elseif ($typeIsScalar === false && $typeName !== null) { // inject from container if class
-                    $parameters[$paramName] = $this->container->get($typeName); // @phpstan-ignore-line
+                    /** @var class-string $typeName */
+                    $parameters[$paramName] = $this->container->getInstance($typeName);
                 } elseif ($paramIsMandatoryAndNonNullable) {
                     throw new \UnexpectedValueException("Can't call method $method from controller $controllerFqcn, because we don't know what to do with argument $paramName");
                 }

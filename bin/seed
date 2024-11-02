@@ -11,7 +11,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../bootstrap/init-container.php';
 assert(isset($container) && $container instanceof Container);
 
-$command = $container->get(SeedCommand::class);
+$command = $container->getInstance(SeedCommand::class);
 
 $status = $command->run(new ArgvInput($argv), new EchoOutput());
 

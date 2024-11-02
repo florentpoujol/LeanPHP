@@ -4,7 +4,7 @@ use LeanPHP\Container\Container;
 use LeanPHP\Http\Session\PdoSessionHandler;
 
 /**
- * @var Container<object> $container
+ * @var Container $container
  *
  * @see https://www.php.net/manual/en/session.configuration.php
  */
@@ -40,4 +40,4 @@ ini_set('session.use_strict_mode', '1'); // keep at '1'
 // --------------------------------------------------
 // register custom handlers, if any
 
-session_set_save_handler($container->get($customSaveHandlerFqcn));
+session_set_save_handler($container->getInstance($customSaveHandlerFqcn));
