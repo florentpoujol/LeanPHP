@@ -63,3 +63,50 @@ CollectionValueType::string
 CollectionValueType::nonEmptyString
 CollectionValueType::classString // the values must be the FQCN of an existing class or interface
 ```
+
+## DottedKeyValueStore
+
+The `DottedKeyValueStore` collection is basically a store for nested associative arrays where you can manipulate nested value with dotted keys.
+
+Ie: 
+```php
+$store = new DottedKeyValueStore([
+    'root' => [
+        'numericStringKey' => '5',
+        'nullKey' => 'will be set null',
+        'willBeUnset' => true,
+    ],
+]);
+
+$store->set('root.numericStringKey', '10');
+$store->set('root.nullKey', null);
+
+$store->unset('unknown');
+$store->unset('root.willBeUnset');
+
+$store->has('unknown'); // false
+$store->has('root'); // true
+$store->has('root.unknown'); // false
+$store->has('root.nullKey'); // true
+$store->has('root.willBeUnset'); // false
+
+// get(string $key, mixed $default = null): mixed
+$store->get('unknown'); // null
+$store->get('unknown', 'default'); // 'default'
+$store->get('root'); // array{numericStringKey: 10, nullKey: null}
+$store->get('root.numericStringKey'); // '10'
+$store->get('root.nullKey'); // null
+$store->get('root.nullKey', 'default'); // null
+
+// There is also a typed version of the get() method for string, int, float, bool and array.
+// The $default argument is optional and nullable.
+// When the value isn't set and no default is provided, it will throw a NoValueFoundException
+
+// ie with the int version
+$store->getInt('unknown'); // NoValueFoundException "No value found for key 'unknown', and no default provided."
+$store->getInt('unknown', null); // null 
+$store->getInt('unknown', 42); // 42
+
+$store->getInt('numericStringKey'); // 10
+$store->getInt('numericStringKey', 42); // 10
+```
